@@ -42,11 +42,13 @@ interface TeamMember {
   id: string;
   name: string;
   studentId: string;
+  phone: string;
+  nationality: string;
 }
 
 // Validation functions
 const validateStudentId = (studentId: string): { valid: boolean; error?: string; department?: string } => {
-  // Format: YYXXDP### where YY=22/23/24, XX=00, D=1-5 (dept), P=program, ###=001-999
+  // Format: YYXXDPS## where YY=22/23/24, XX=00, D=1-5 (dept), P=program, S=section, ##=01-99
   // Total: 9 digits like 240042101
   
   if (!studentId) return { valid: false, error: 'Student ID is required' };
@@ -62,7 +64,8 @@ const validateStudentId = (studentId: string): { valid: boolean; error?: string;
   const fixed = cleanId.substring(2, 4);
   const dept = cleanId.substring(4, 5);
   const program = cleanId.substring(5, 6);
-  const rollNum = cleanId.substring(6, 9);
+  const section = cleanId.substring(6, 7);
+  const rollNum = cleanId.substring(7, 9);
   
   // Validate year (22, 23, 24)
   if (!['22', '23', '24'].includes(year)) {
@@ -82,24 +85,36 @@ const validateStudentId = (studentId: string): { valid: boolean; error?: string;
   // Validate program digit based on department
   // EEE (3): 1-3, CSE (4): 1-2, MPE (1): 1-2, BTM (2): 1, TVE (5): 1
   const programInt = parseInt(program, 10);
+  const sectionInt = parseInt(section, 10);
+  
   if (dept === '3') { // EEE
     if (programInt < 1 || programInt > 3) {
-      return { valid: false, error: 'Digit 6 must be 1-3 for EEE department' };
+      return { valid: false, error: 'Digit 6 (program) must be 1-3 for EEE department' };
     }
   } else if (dept === '4' || dept === '1') { // CSE or MPE
     if (programInt < 1 || programInt > 2) {
-      return { valid: false, error: `Digit 6 must be 1-2 for ${dept === '4' ? 'CSE' : 'MPE'} department` };
+      return { valid: false, error: `Digit 6 (program) must be 1-2 for ${dept === '4' ? 'CSE' : 'MPE'} department` };
+    }
+    // Section validation for CSE/MPE: P=2 -> S=1, P=1 -> S=1 or 2
+    if (programInt === 2) {
+      if (sectionInt !== 1) {
+        return { valid: false, error: `Digit 7 (section) must be 1 when program is 2 for ${dept === '4' ? 'CSE' : 'MPE'}` };
+      }
+    } else if (programInt === 1) {
+      if (sectionInt < 1 || sectionInt > 2) {
+        return { valid: false, error: `Digit 7 (section) must be 1-2 when program is 1 for ${dept === '4' ? 'CSE' : 'MPE'}` };
+      }
     }
   } else { // BTM (2) or TVE (5)
     if (programInt !== 1) {
-      return { valid: false, error: `Digit 6 must be 1 for ${dept === '2' ? 'BTM' : 'TVE'} department` };
+      return { valid: false, error: `Digit 6 (program) must be 1 for ${dept === '2' ? 'BTM' : 'TVE'} department` };
     }
   }
   
-  // Validate roll number (001-999)
+  // Validate roll number (01-99)
   const rollNumInt = parseInt(rollNum, 10);
-  if (rollNumInt < 1 || rollNumInt > 999) {
-    return { valid: false, error: 'Last 3 digits must be 001-999' };
+  if (rollNumInt < 1 || rollNumInt > 99) {
+    return { valid: false, error: 'Last 2 digits (roll) must be 01-99' };
   }
   
   return { valid: true, department: DEPARTMENT_MAP[dept] };
@@ -138,6 +153,36 @@ const validateBangladeshiPhone = (phone: string): { valid: boolean; error?: stri
   }
   
   return { valid: false, error: 'Must be a valid Bangladeshi number (01XXXXXXXXX or +8801XXXXXXXXX)' };
+};
+
+// Normalize phone number for comparison (remove +88 prefix and spaces)
+const normalizePhone = (phone: string): string => {
+  if (!phone) return '';
+  let clean = phone.replace(/[\s\-()]/g, '');
+  if (clean.startsWith('+880')) clean = '0' + clean.substring(4);
+  else if (clean.startsWith('880')) clean = '0' + clean.substring(3);
+  return clean;
+};
+
+// Normalize student ID for comparison
+const normalizeStudentId = (studentId: string): string => {
+  if (!studentId) return '';
+  return studentId.replace(/[\s-]/g, '').toLowerCase();
+};
+
+// Check for duplicate values in arrays
+const findDuplicates = (values: string[]): string[] => {
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+  
+  for (const value of values) {
+    if (value && seen.has(value)) {
+      duplicates.add(value);
+    }
+    if (value) seen.add(value);
+  }
+  
+  return Array.from(duplicates);
 };
 
 export default function TeamRegistrationPage() {
@@ -228,7 +273,7 @@ export default function TeamRegistrationPage() {
     }
   };
 
-  const handleMemberChange = (id: string, field: 'name' | 'studentId', value: string) => {
+  const handleMemberChange = (id: string, field: 'name' | 'studentId' | 'phone' | 'nationality', value: string) => {
     setTeamMembers(prev =>
       prev.map(member =>
         member.id === id ? { ...member, [field]: value } : member
@@ -249,15 +294,35 @@ export default function TeamRegistrationPage() {
     }
   };
 
+  // Validate member phone on blur
+  const handleMemberPhoneBlur = (id: string, phone: string) => {
+    if (phone) {
+      const result = validateBangladeshiPhone(phone);
+      if (!result.valid) {
+        setFieldErrors(prev => ({ ...prev, [`member_${id}_phone`]: result.error || '' }));
+      }
+    }
+  };
+
   const addMember = () => {
     setTeamMembers(prev => [
       ...prev,
-      { id: Date.now().toString(), name: '', studentId: '' }
+      { id: Date.now().toString(), name: '', studentId: '', phone: '', nationality: 'Bangladesh' }
     ]);
   };
 
   const removeMember = (id: string) => {
     setTeamMembers(prev => prev.filter(m => m.id !== id));
+    // Clear any related errors
+    setFieldErrors(prev => {
+      const newErrors = { ...prev };
+      Object.keys(newErrors).forEach(key => {
+        if (key.startsWith(`member_${id}`)) {
+          delete newErrors[key];
+        }
+      });
+      return newErrors;
+    });
   };
 
   const handleSignOut = async () => {
@@ -294,12 +359,92 @@ export default function TeamRegistrationPage() {
       errors.phone = phoneResult.error || 'Invalid phone number';
     }
     
-    // Validate member student IDs
-    for (const member of teamMembers) {
-      if (member.name.trim() && member.studentId) {
-        const memberResult = validateStudentId(member.studentId);
-        if (!memberResult.valid) {
-          errors[`member_${member.id}_studentId`] = memberResult.error || 'Invalid student ID';
+    // Validate member fields
+    const activeMembers = teamMembers.filter(m => m.name.trim());
+    for (const member of activeMembers) {
+      // Student ID is required for members
+      if (!member.studentId || !member.studentId.trim()) {
+        errors[`member_${member.id}_studentId`] = 'Student ID is required';
+      } else {
+        const memberStudentIdResult = validateStudentId(member.studentId);
+        if (!memberStudentIdResult.valid) {
+          errors[`member_${member.id}_studentId`] = memberStudentIdResult.error || 'Invalid student ID';
+        }
+      }
+      // Phone is required for members
+      if (!member.phone || !member.phone.trim()) {
+        errors[`member_${member.id}_phone`] = 'Phone number is required';
+      } else {
+        const memberPhoneResult = validateBangladeshiPhone(member.phone);
+        if (!memberPhoneResult.valid) {
+          errors[`member_${member.id}_phone`] = memberPhoneResult.error || 'Invalid phone number';
+        }
+      }
+      // Nationality is required
+      if (!member.nationality || !member.nationality.trim()) {
+        errors[`member_${member.id}_nationality`] = 'Nationality is required';
+      }
+    }
+    
+    // Check for duplicate student IDs
+    const allStudentIds = [
+      normalizeStudentId(formData.studentId),
+      ...activeMembers.map(m => normalizeStudentId(m.studentId))
+    ].filter(id => id);
+    
+    const duplicateStudentIds = findDuplicates(allStudentIds);
+    if (duplicateStudentIds.length > 0) {
+      // Find which fields have duplicates
+      const leaderNormalized = normalizeStudentId(formData.studentId);
+      if (duplicateStudentIds.includes(leaderNormalized)) {
+        errors.studentId = 'This Student ID is already used by another team member';
+      }
+      for (const member of activeMembers) {
+        const memberNormalized = normalizeStudentId(member.studentId);
+        if (duplicateStudentIds.includes(memberNormalized)) {
+          // Check if it matches leader or another member
+          if (memberNormalized === leaderNormalized) {
+            errors[`member_${member.id}_studentId`] = 'This Student ID is same as team leader';
+          } else {
+            // Check against other members
+            const otherMembers = activeMembers.filter(m => m.id !== member.id);
+            for (const other of otherMembers) {
+              if (normalizeStudentId(other.studentId) === memberNormalized) {
+                errors[`member_${member.id}_studentId`] = 'Duplicate Student ID with another team member';
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // Check for duplicate phone numbers
+    const allPhones = [
+      normalizePhone(formData.phone),
+      ...activeMembers.map(m => normalizePhone(m.phone))
+    ].filter(p => p);
+    
+    const duplicatePhones = findDuplicates(allPhones);
+    if (duplicatePhones.length > 0) {
+      const leaderNormalized = normalizePhone(formData.phone);
+      if (duplicatePhones.includes(leaderNormalized)) {
+        errors.phone = 'This phone number is already used by another team member';
+      }
+      for (const member of activeMembers) {
+        const memberNormalized = normalizePhone(member.phone);
+        if (duplicatePhones.includes(memberNormalized)) {
+          if (memberNormalized === leaderNormalized) {
+            errors[`member_${member.id}_phone`] = 'This phone number is same as team leader';
+          } else {
+            const otherMembers = activeMembers.filter(m => m.id !== member.id);
+            for (const other of otherMembers) {
+              if (normalizePhone(other.phone) === memberNormalized) {
+                errors[`member_${member.id}_phone`] = 'Duplicate phone number with another team member';
+                break;
+              }
+            }
+          }
         }
       }
     }
@@ -327,7 +472,12 @@ export default function TeamRegistrationPage() {
           nationality: formData.nationality,
           transaction_id: formData.transactionId,
           payment_verified: false,
-          members: teamMembers.filter(m => m.name.trim() !== ''),
+          members: teamMembers.filter(m => m.name.trim() !== '').map(m => ({
+            name: m.name.trim(),
+            studentId: m.studentId.trim(),
+            phone: m.phone.trim(),
+            nationality: m.nationality
+          })),
         })
         .select()
         .single();
@@ -703,23 +853,41 @@ export default function TeamRegistrationPage() {
                     </div>
                   ) : (
                     teamMembers.map((member, idx) => (
-                      <div key={member.id} className="p-4 bg-background/30 rounded-xl border border-border/30 space-y-3">
-                        <div className="flex gap-3 items-end">
-                          <div className="flex-1 space-y-2">
+                      <div key={member.id} className="p-5 bg-background/30 rounded-xl border border-border/30 space-y-4">
+                        {/* Header with member number and remove button */}
+                        <div className="flex items-center justify-between pb-2 border-b border-border/20">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 bg-accent/10 rounded-full flex items-center justify-center border border-accent/30">
+                              <span className="text-xs font-medium text-accent">{idx + 1}</span>
+                            </div>
+                            <span className="text-sm font-medium text-white">Team Member</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeMember(member.id)}
+                            className="p-1.5 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        {/* Name and Student ID row */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
                             <label className="block text-sm font-medium text-white">
-                              Member {idx + 1} Name
+                              Full Name *
                             </label>
                             <Input
                               type="text"
-                              placeholder="Full name"
+                              placeholder="Enter full name"
                               value={member.name}
                               onChange={(e) => handleMemberChange(member.id, 'name', e.target.value)}
                               className="bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors"
                             />
                           </div>
-                          <div className="flex-1 space-y-2">
+                          <div className="space-y-2">
                             <label className="block text-sm font-medium text-white">
-                              Student ID
+                              Student ID *
                             </label>
                             <Input
                               type="text"
@@ -729,18 +897,49 @@ export default function TeamRegistrationPage() {
                               onBlur={() => handleMemberStudentIdBlur(member.id, member.studentId)}
                               className={`bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors ${fieldErrors[`member_${member.id}_studentId`] ? 'border-red-500/50' : ''}`}
                             />
+                            {fieldErrors[`member_${member.id}_studentId`] && (
+                              <p className="text-xs text-red-400 mt-1">{fieldErrors[`member_${member.id}_studentId`]}</p>
+                            )}
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => removeMember(member.id)}
-                            className="p-2.5 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
                         </div>
-                        {fieldErrors[`member_${member.id}_studentId`] && (
-                          <p className="text-xs text-red-400">{fieldErrors[`member_${member.id}_studentId`]}</p>
-                        )}
+                        
+                        {/* Phone and Nationality row */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="block text-sm font-medium text-white">
+                              Phone (Bangladesh) *
+                            </label>
+                            <Input
+                              type="tel"
+                              placeholder="01XXXXXXXXX"
+                              value={member.phone}
+                              onChange={(e) => handleMemberChange(member.id, 'phone', e.target.value)}
+                              onBlur={() => handleMemberPhoneBlur(member.id, member.phone)}
+                              className={`bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors ${fieldErrors[`member_${member.id}_phone`] ? 'border-red-500/50' : ''}`}
+                            />
+                            {fieldErrors[`member_${member.id}_phone`] && (
+                              <p className="text-xs text-red-400 mt-1">{fieldErrors[`member_${member.id}_phone`]}</p>
+                            )}
+                          </div>
+                          <div className="space-y-2">
+                            <label className="block text-sm font-medium text-white">
+                              Nationality *
+                            </label>
+                            <Select
+                              value={member.nationality}
+                              onValueChange={(value) => handleMemberChange(member.id, 'nationality', value)}
+                            >
+                              <SelectTrigger className="w-full bg-background/50 border-border/50 text-white focus:border-accent/50">
+                                <SelectValue placeholder="Select country" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-60">
+                                {OIC_COUNTRIES.map((country) => (
+                                  <SelectItem key={country} value={country}>{country}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
                       </div>
                     ))
                   )}
