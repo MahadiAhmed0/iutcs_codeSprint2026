@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Plus, Trash2, CheckCircle, Users, User, Sparkles, Rocket } from 'lucide-react';
+import { ScrollToTop } from '@/components/scroll-to-top';
 
 interface TeamMember {
   id: string;
@@ -369,6 +370,8 @@ export default function TeamRegistrationPage() {
           </Card>
         </div>
       </div>
+
+      <ScrollToTop />
     </div>
   );
 }

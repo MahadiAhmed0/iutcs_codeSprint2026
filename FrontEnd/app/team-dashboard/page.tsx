@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { LogOut, Send, Settings, Users, FileText, CheckCircle, Clock, Sparkles, ArrowRight, Copy } from 'lucide-react';
+import { ScrollToTop } from '@/components/scroll-to-top';
 
 export default function TeamDashboard() {
   const teamData = {
@@ -295,6 +296,8 @@ export default function TeamDashboard() {
           </div>
         </div>
       </div>
+
+      <ScrollToTop />
     </div>
   );
 }
