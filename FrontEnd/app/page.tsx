@@ -1,11 +1,39 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Zap, Users, Trophy, Code2, Sparkles, Calendar, Award, Rocket } from 'lucide-react';
+import { ArrowRight, Zap, Users, Trophy, Code2, Sparkles, Calendar, Award, Rocket, GraduationCap, Clock } from 'lucide-react';
 
 export default function LandingPage() {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    const targetDate = new Date('2026-02-28T23:59:59').getTime();
+
+    const calculateTimeLeft = () => {
+      const now = new Date().getTime();
+      const difference = targetDate - now;
+
+      if (difference > 0) {
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((difference % (1000 * 60)) / 1000)
+        });
+      } else {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      }
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background overflow-hidden">
       {/* Animated Background */}
@@ -93,24 +121,48 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Right visual */}
-            <div className="relative h-64 sm:h-80 lg:h-[500px] mt-4 lg:mt-0">
-              <div className="absolute inset-0 bg-gradient-to-br from-accent/30 to-primary/30 rounded-2xl sm:rounded-3xl blur-2xl sm:blur-3xl animate-pulse"></div>
-              <div className="relative bg-card/80 backdrop-blur-xl border border-border/50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center h-full shadow-2xl shadow-accent/10">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-accent/20 rounded-full blur-xl sm:blur-2xl animate-pulse"></div>
-                  <Image 
-                    src="/iutcs-logo.png" 
-                    alt="IUTCS" 
-                    width={200} 
-                    height={200}
-                    className="relative w-28 sm:w-40 lg:w-48 h-auto drop-shadow-2xl"
-                  />
+            {/* Countdown Timer */}
+            <div className="relative flex flex-col items-center justify-center h-64 sm:h-80 lg:h-[500px] mt-4 lg:mt-0">
+              {/* Animated glow - positioned to the side */}
+              <div className="absolute top-1/4 -left-20 sm:-left-10 lg:left-0 w-[200px] sm:w-[300px] h-[200px] sm:h-[300px] bg-accent/25 rounded-full blur-[80px] sm:blur-[100px] animate-pulse"></div>
+              <div className="absolute bottom-1/4 -right-20 sm:-right-10 lg:right-0 w-[150px] sm:w-[200px] h-[150px] sm:h-[200px] bg-primary/20 rounded-full blur-[60px] sm:blur-[80px] animate-pulse" style={{ animationDelay: '1.5s' }}></div>
+              
+              {/* Timer content */}
+              <div className="relative text-center">
+                <div className="flex items-center justify-center gap-2 mb-6 sm:mb-8">
+                  <div className="p-2 sm:p-3 bg-accent/10 rounded-full border border-accent/30">
+                    <Clock className="w-5 h-5 sm:w-7 sm:h-7 text-accent" />
+                  </div>
                 </div>
                 
-                {/* Floating badges */}
-                <div className="absolute -top-2 -right-2 sm:-top-4 sm:-right-4 px-2 sm:px-4 py-1 sm:py-2 bg-accent/20 border border-accent/30 rounded-full text-accent text-xs sm:text-sm font-semibold backdrop-blur-sm">
-                  <Rocket className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" /> Live Now
+                <p className="text-xs sm:text-sm uppercase tracking-[0.2em] text-accent font-semibold mb-2 sm:mb-3">Submission Deadline</p>
+                
+                <div className="flex items-center justify-center gap-2 sm:gap-4 mb-4 sm:mb-6">
+                  {[
+                    { value: timeLeft.days, label: 'Days' },
+                    { value: timeLeft.hours, label: 'Hours' },
+                    { value: timeLeft.minutes, label: 'Mins' },
+                    { value: timeLeft.seconds, label: 'Secs' }
+                  ].map((item, idx) => (
+                    <div key={idx} className="text-center">
+                      <div className="relative">
+                        <span className="text-4xl sm:text-6xl lg:text-7xl font-bold text-white drop-shadow-[0_0_30px_rgba(var(--accent-rgb),0.3)]">
+                          {String(item.value).padStart(2, '0')}
+                        </span>
+                      </div>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 sm:mt-2 uppercase tracking-wider">{item.label}</p>
+                    </div>
+                  ))}
+                </div>
+                
+                <p className="text-sm sm:text-base text-muted-foreground">
+                  Feb 28, 2026 • 11:59 PM
+                </p>
+                
+                {/* Live badge */}
+                <div className="mt-6 sm:mt-8 inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/30 rounded-full">
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                  <span className="text-xs sm:text-sm text-accent font-medium">Registration Open</span>
                 </div>
               </div>
             </div>
@@ -137,8 +189,14 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             {[
+              {
+                icon: GraduationCap,
+                title: 'Who Can Participate',
+                description: '1st year, 2nd year & 3rd year students can join and showcase their talents',
+                gradient: 'from-green-500/20 to-emerald-500/20'
+              },
               {
                 icon: Users,
                 title: 'Team Collaboration',
