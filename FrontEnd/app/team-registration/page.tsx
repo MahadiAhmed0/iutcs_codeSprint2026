@@ -676,7 +676,7 @@ export default function TeamRegistrationPage() {
                     value={formData.teamName}
                     onChange={handleInputChange}
                     required
-                    className="bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors"
+                    className="h-11 bg-background/60 border-2 border-border/60 text-white placeholder:text-muted-foreground/60 focus:border-accent focus:bg-background/80 focus:ring-2 focus:ring-accent/20 transition-all rounded-lg shadow-sm"
                   />
                 </div>
               </div>
@@ -699,20 +699,20 @@ export default function TeamRegistrationPage() {
                     value={formData.leaderName}
                     onChange={handleInputChange}
                     required
-                    className="bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors"
+                    className="h-11 bg-background/60 border-2 border-border/60 text-white placeholder:text-muted-foreground/60 focus:border-accent focus:bg-background/80 focus:ring-2 focus:ring-accent/20 transition-all rounded-lg shadow-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">Email (Auto-filled)</label>
+                  <label className="block text-sm font-medium text-white/70 mb-2">Email (Auto-filled)</label>
                   <Input
                     type="email"
                     name="leaderEmail"
                     value={formData.leaderEmail}
                     disabled
-                    className="bg-background/30 border-border/30 text-white/50 cursor-not-allowed"
+                    className="h-11 bg-background/20 border-2 border-border/30 text-white/50 cursor-not-allowed rounded-lg"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">From your Google account</p>
+                  <p className="text-[11px] text-muted-foreground/70 mt-1.5 italic">From your Google account</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -726,12 +726,12 @@ export default function TeamRegistrationPage() {
                       onChange={handleInputChange}
                       onBlur={handleStudentIdBlur}
                       required
-                      className={`bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors ${fieldErrors.studentId ? 'border-red-500/50' : ''}`}
+                      className={`h-11 bg-background/60 border-2 text-white placeholder:text-muted-foreground/60 focus:border-accent focus:bg-background/80 focus:ring-2 focus:ring-accent/20 transition-all rounded-lg shadow-sm ${fieldErrors.studentId ? 'border-red-500 bg-red-500/5' : 'border-border/60'}`}
                     />
                     {fieldErrors.studentId && (
-                      <p className="text-xs text-red-400 mt-1">{fieldErrors.studentId}</p>
+                      <p className="text-xs text-red-400 mt-1.5 font-medium">{fieldErrors.studentId}</p>
                     )}
-                    <p className="text-xs text-muted-foreground mt-1">Format: YY00DPS## (e.g., 240042101)</p>
+                    <p className="text-[11px] text-muted-foreground/70 mt-1.5 italic">Format: YY00DPS## (e.g., 240042101)</p>
                   </div>
 
                   <div>
@@ -755,7 +755,7 @@ export default function TeamRegistrationPage() {
                       required
                       disabled={formData.studentId.length >= 5 && !!DEPARTMENT_MAP[formData.studentId.replace(/[\s-]/g, '').charAt(4)]}
                     >
-                      <SelectTrigger className={`w-full bg-background/50 border-border/50 text-white focus:border-accent/50 ${formData.studentId.length >= 5 ? 'opacity-70 cursor-not-allowed' : ''}`}>
+                      <SelectTrigger className={`h-11 w-full bg-background/60 border-2 border-border/60 text-white focus:border-accent focus:ring-2 focus:ring-accent/20 rounded-lg ${formData.studentId.length >= 5 ? 'opacity-70 cursor-not-allowed' : ''}`}>
                         <SelectValue placeholder="Auto-detected from ID" />
                       </SelectTrigger>
                       <SelectContent>
@@ -767,9 +767,9 @@ export default function TeamRegistrationPage() {
                       </SelectContent>
                     </Select>
                     {fieldErrors.department ? (
-                      <p className="text-xs text-red-400 mt-1">{fieldErrors.department}</p>
+                      <p className="text-xs text-red-400 mt-1.5 font-medium">{fieldErrors.department}</p>
                     ) : (
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-[11px] text-muted-foreground/70 mt-1.5 italic">
                         {formData.studentId.length >= 5 ? 'Locked based on Student ID' : 'Auto-selected from Student ID'}
                       </p>
                     )}
@@ -787,12 +787,12 @@ export default function TeamRegistrationPage() {
                       onChange={handleInputChange}
                       onBlur={handlePhoneBlur}
                       required
-                      className={`bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors ${fieldErrors.phone ? 'border-red-500/50' : ''}`}
+                      className={`h-11 bg-background/60 border-2 text-white placeholder:text-muted-foreground/60 focus:border-accent focus:bg-background/80 focus:ring-2 focus:ring-accent/20 transition-all rounded-lg shadow-sm ${fieldErrors.phone ? 'border-red-500 bg-red-500/5' : 'border-border/60'}`}
                     />
                     {fieldErrors.phone && (
-                      <p className="text-xs text-red-400 mt-1">{fieldErrors.phone}</p>
+                      <p className="text-xs text-red-400 mt-1.5 font-medium">{fieldErrors.phone}</p>
                     )}
-                    <p className="text-xs text-muted-foreground mt-1">11 digits or +880 format</p>
+                    <p className="text-[11px] text-muted-foreground/70 mt-1.5 italic">11 digits or +880 format</p>
                   </div>
 
                   <div>
@@ -805,7 +805,7 @@ export default function TeamRegistrationPage() {
                       onValueChange={(value) => setFormData(prev => ({ ...prev, nationality: value }))}
                       required
                     >
-                      <SelectTrigger className="w-full bg-background/50 border-border/50 text-white focus:border-accent/50">
+                      <SelectTrigger className="h-11 w-full bg-background/60 border-2 border-border/60 text-white focus:border-accent focus:ring-2 focus:ring-accent/20 rounded-lg">
                         <SelectValue placeholder="Select country" />
                       </SelectTrigger>
                       <SelectContent className="max-h-60">
@@ -814,7 +814,7 @@ export default function TeamRegistrationPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-muted-foreground mt-1">OIC member countries only</p>
+                    <p className="text-[11px] text-muted-foreground/70 mt-1.5 italic">OIC member countries only</p>
                   </div>
                 </div>
               </div>
@@ -882,7 +882,7 @@ export default function TeamRegistrationPage() {
                               placeholder="Enter full name"
                               value={member.name}
                               onChange={(e) => handleMemberChange(member.id, 'name', e.target.value)}
-                              className="bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors"
+                              className="h-11 bg-background/60 border-2 border-border/60 text-white placeholder:text-muted-foreground/60 focus:border-accent focus:bg-background/80 focus:ring-2 focus:ring-accent/20 transition-all rounded-lg shadow-sm"
                             />
                           </div>
                           <div className="space-y-2">
@@ -895,10 +895,12 @@ export default function TeamRegistrationPage() {
                               value={member.studentId}
                               onChange={(e) => handleMemberChange(member.id, 'studentId', e.target.value)}
                               onBlur={() => handleMemberStudentIdBlur(member.id, member.studentId)}
-                              className={`bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors ${fieldErrors[`member_${member.id}_studentId`] ? 'border-red-500/50' : ''}`}
+                              className={`h-11 bg-background/60 border-2 text-white placeholder:text-muted-foreground/60 focus:border-accent focus:bg-background/80 focus:ring-2 focus:ring-accent/20 transition-all rounded-lg shadow-sm ${fieldErrors[`member_${member.id}_studentId`] ? 'border-red-500 bg-red-500/5' : 'border-border/60'}`}
                             />
-                            {fieldErrors[`member_${member.id}_studentId`] && (
-                              <p className="text-xs text-red-400 mt-1">{fieldErrors[`member_${member.id}_studentId`]}</p>
+                            {fieldErrors[`member_${member.id}_studentId`] ? (
+                              <p className="text-xs text-red-400 font-medium">{fieldErrors[`member_${member.id}_studentId`]}</p>
+                            ) : (
+                              <p className="text-[11px] text-muted-foreground/70 italic">Format: YY00DPS##</p>
                             )}
                           </div>
                         </div>
@@ -915,10 +917,12 @@ export default function TeamRegistrationPage() {
                               value={member.phone}
                               onChange={(e) => handleMemberChange(member.id, 'phone', e.target.value)}
                               onBlur={() => handleMemberPhoneBlur(member.id, member.phone)}
-                              className={`bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors ${fieldErrors[`member_${member.id}_phone`] ? 'border-red-500/50' : ''}`}
+                              className={`h-11 bg-background/60 border-2 text-white placeholder:text-muted-foreground/60 focus:border-accent focus:bg-background/80 focus:ring-2 focus:ring-accent/20 transition-all rounded-lg shadow-sm ${fieldErrors[`member_${member.id}_phone`] ? 'border-red-500 bg-red-500/5' : 'border-border/60'}`}
                             />
-                            {fieldErrors[`member_${member.id}_phone`] && (
-                              <p className="text-xs text-red-400 mt-1">{fieldErrors[`member_${member.id}_phone`]}</p>
+                            {fieldErrors[`member_${member.id}_phone`] ? (
+                              <p className="text-xs text-red-400 font-medium">{fieldErrors[`member_${member.id}_phone`]}</p>
+                            ) : (
+                              <p className="text-[11px] text-muted-foreground/70 italic">11 digits or +880 format</p>
                             )}
                           </div>
                           <div className="space-y-2">
@@ -929,7 +933,7 @@ export default function TeamRegistrationPage() {
                               value={member.nationality}
                               onValueChange={(value) => handleMemberChange(member.id, 'nationality', value)}
                             >
-                              <SelectTrigger className="w-full bg-background/50 border-border/50 text-white focus:border-accent/50">
+                              <SelectTrigger className="h-11 w-full bg-background/60 border-2 border-border/60 text-white focus:border-accent focus:ring-2 focus:ring-accent/20 rounded-lg">
                                 <SelectValue placeholder="Select country" />
                               </SelectTrigger>
                               <SelectContent className="max-h-60">
@@ -979,9 +983,9 @@ export default function TeamRegistrationPage() {
                     value={formData.transactionId}
                     onChange={handleInputChange}
                     required
-                    className="bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-pink-500/50 transition-colors"
+                    className="h-11 bg-background/60 border-2 border-pink-500/40 text-white placeholder:text-muted-foreground/60 focus:border-pink-500 focus:bg-background/80 focus:ring-2 focus:ring-pink-500/20 transition-all rounded-lg shadow-sm"
                   />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[11px] text-muted-foreground/70 mt-1.5 italic">
                     Enter the transaction ID you received after sending the payment via bKash
                   </p>
                 </div>
@@ -1001,7 +1005,7 @@ export default function TeamRegistrationPage() {
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-5 h-5 mr-2" />
+                      
                       Register Team
                     </>
                   )}
@@ -1011,7 +1015,7 @@ export default function TeamRegistrationPage() {
 
             {/* Terms */}
             <p className="relative text-xs text-muted-foreground text-center pt-4 border-t border-border/50">
-              By registering, you agree to our terms and acknowledge that only team leaders can submit projects
+              By registering, you agree to our terms and acknowledge that only team leaders can submit projects.
             </p>
           </Card>
         </div>

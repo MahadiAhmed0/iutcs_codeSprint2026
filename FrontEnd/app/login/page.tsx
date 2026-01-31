@@ -135,9 +135,6 @@ export default function LoginPage() {
           <div className="relative space-y-4">
             <div className="text-center">
               <h2 className="text-xl font-bold text-white mb-2">Welcome, Coder!</h2>
-              <p className="text-sm text-muted-foreground">
-                Sign in to register your team and join the competition
-              </p>
             </div>
 
             {/* Google Login Button */}
@@ -165,19 +162,7 @@ export default function LoginPage() {
             </Button>
           </div>
 
-          {/* Divider */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border/50"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-card text-muted-foreground flex items-center gap-2">
-                <Sparkles className="w-3 h-3 text-accent" />
-                IUT Computer Society
-                <Sparkles className="w-3 h-3 text-accent" />
-              </span>
-            </div>
-          </div>
+         
 
           {/* Info */}
           <div className="relative text-center text-sm text-muted-foreground">
