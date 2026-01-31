@@ -123,3 +123,41 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom Scrollbar Styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) var(--primary);
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--primary);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--accent) 0%, #cc242f 100%);
+  border-radius: 5px;
+  border: 2px solid var(--primary);
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ff4a58 0%, var(--accent) 100%);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--primary);
+}
+
+/* Selection styling */
+::selection {
+  background: var(--accent);
+  color: white;
+}
