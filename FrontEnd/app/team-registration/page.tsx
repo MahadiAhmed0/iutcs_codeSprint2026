@@ -10,16 +10,180 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Plus, Trash2, CheckCircle, Users, User, Sparkles, Rocket, Wallet, AlertCircle, LogOut } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, CheckCircle, Users, User, Sparkles, Rocket, Wallet, AlertCircle, LogOut, Globe } from 'lucide-react';
 import { ScrollToTop } from '@/components/scroll-to-top';
 import { useAuth } from '@/contexts/auth-context';
 import { createClient } from '@/lib/supabase/client';
+
+// OIC Countries List
+const OIC_COUNTRIES = [
+  "Afghanistan", "Albania", "Algeria", "Azerbaijan", "Bahrain", "Bangladesh",
+  "Benin", "Brunei", "Burkina Faso", "Cameroon", "Chad", "Comoros",
+  "Djibouti", "Egypt", "Gabon", "Gambia", "Guinea", "Guinea-Bissau",
+  "Guyana", "Indonesia", "Iran", "Iraq", "Ivory Coast", "Jordan",
+  "Kazakhstan", "Kuwait", "Kyrgyzstan", "Lebanon", "Libya", "Malaysia",
+  "Maldives", "Mali", "Mauritania", "Morocco", "Mozambique", "Niger",
+  "Nigeria", "Oman", "Pakistan", "Palestine", "Qatar", "Saudi Arabia",
+  "Senegal", "Sierra Leone", "Somalia", "Sudan", "Suriname", "Syria",
+  "Tajikistan", "Togo", "Tunisia", "Turkey", "Turkmenistan", "Uganda",
+  "United Arab Emirates", "Uzbekistan", "Yemen"
+];
+
+// Department mapping based on student ID digit
+const DEPARTMENT_MAP: { [key: string]: string } = {
+  '1': 'MPE',
+  '2': 'BTM',
+  '3': 'EEE',
+  '4': 'CSE',
+  '5': 'TVE',
+};
 
 interface TeamMember {
   id: string;
   name: string;
   studentId: string;
+  phone: string;
+  nationality: string;
 }
+
+// Validation functions
+const validateStudentId = (studentId: string): { valid: boolean; error?: string; department?: string } => {
+  // Format: YYXXDPS## where YY=22/23/24, XX=00, D=1-5 (dept), P=program, S=section, ##=01-99
+  // Total: 9 digits like 240042101
+  
+  if (!studentId) return { valid: false, error: 'Student ID is required' };
+  
+  // Remove any spaces or dashes
+  const cleanId = studentId.replace(/[\s-]/g, '');
+  
+  if (!/^\d{9}$/.test(cleanId)) {
+    return { valid: false, error: 'Student ID must be exactly 9 digits' };
+  }
+  
+  const year = cleanId.substring(0, 2);
+  const fixed = cleanId.substring(2, 4);
+  const dept = cleanId.substring(4, 5);
+  const program = cleanId.substring(5, 6);
+  const section = cleanId.substring(6, 7);
+  const rollNum = cleanId.substring(7, 9);
+  
+  // Validate year (22, 23, 24)
+  if (!['22', '23', '24'].includes(year)) {
+    return { valid: false, error: 'First 2 digits must be 22, 23, or 24' };
+  }
+  
+  // Validate fixed digits (00)
+  if (fixed !== '00') {
+    return { valid: false, error: 'Digits 3-4 must be 00' };
+  }
+  
+  // Validate department digit (1-5)
+  if (!['1', '2', '3', '4', '5'].includes(dept)) {
+    return { valid: false, error: 'Digit 5 must be 1-5 (1:MPE, 2:BTM, 3:EEE, 4:CSE, 5:TVE)' };
+  }
+  
+  // Validate program digit based on department
+  // EEE (3): 1-3, CSE (4): 1-2, MPE (1): 1-2, BTM (2): 1, TVE (5): 1
+  const programInt = parseInt(program, 10);
+  const sectionInt = parseInt(section, 10);
+  
+  if (dept === '3') { // EEE
+    if (programInt < 1 || programInt > 3) {
+      return { valid: false, error: 'Digit 6 (program) must be 1-3 for EEE department' };
+    }
+  } else if (dept === '4' || dept === '1') { // CSE or MPE
+    if (programInt < 1 || programInt > 2) {
+      return { valid: false, error: `Digit 6 (program) must be 1-2 for ${dept === '4' ? 'CSE' : 'MPE'} department` };
+    }
+    // Section validation for CSE/MPE: P=2 -> S=1, P=1 -> S=1 or 2
+    if (programInt === 2) {
+      if (sectionInt !== 1) {
+        return { valid: false, error: `Digit 7 (section) must be 1 when program is 2 for ${dept === '4' ? 'CSE' : 'MPE'}` };
+      }
+    } else if (programInt === 1) {
+      if (sectionInt < 1 || sectionInt > 2) {
+        return { valid: false, error: `Digit 7 (section) must be 1-2 when program is 1 for ${dept === '4' ? 'CSE' : 'MPE'}` };
+      }
+    }
+  } else { // BTM (2) or TVE (5)
+    if (programInt !== 1) {
+      return { valid: false, error: `Digit 6 (program) must be 1 for ${dept === '2' ? 'BTM' : 'TVE'} department` };
+    }
+  }
+  
+  // Validate roll number (01-99)
+  const rollNumInt = parseInt(rollNum, 10);
+  if (rollNumInt < 1 || rollNumInt > 99) {
+    return { valid: false, error: 'Last 2 digits (roll) must be 01-99' };
+  }
+  
+  return { valid: true, department: DEPARTMENT_MAP[dept] };
+};
+
+const validateBangladeshiPhone = (phone: string): { valid: boolean; error?: string } => {
+  if (!phone) return { valid: false, error: 'Phone number is required' };
+  
+  // Remove spaces, dashes, and parentheses
+  const cleanPhone = phone.replace(/[\s\-()]/g, '');
+  
+  // Check for +880 format (14 digits total: +880 followed by 10 digits starting with 1)
+  if (cleanPhone.startsWith('+880')) {
+    const number = cleanPhone.substring(4);
+    if (!/^1[3-9]\d{8}$/.test(number)) {
+      return { valid: false, error: 'Invalid format. Use +880 1XXXXXXXXX' };
+    }
+    return { valid: true };
+  }
+  
+  // Check for 880 format (13 digits: 880 followed by 10 digits starting with 1)
+  if (cleanPhone.startsWith('880')) {
+    const number = cleanPhone.substring(3);
+    if (!/^1[3-9]\d{8}$/.test(number)) {
+      return { valid: false, error: 'Invalid format. Use 880 1XXXXXXXXX' };
+    }
+    return { valid: true };
+  }
+  
+  // Check for 01X format (11 digits starting with 01)
+  if (cleanPhone.startsWith('01')) {
+    if (!/^01[3-9]\d{8}$/.test(cleanPhone)) {
+      return { valid: false, error: 'Invalid format. Use 01XXXXXXXXX (11 digits)' };
+    }
+    return { valid: true };
+  }
+  
+  return { valid: false, error: 'Must be a valid Bangladeshi number (01XXXXXXXXX or +8801XXXXXXXXX)' };
+};
+
+// Normalize phone number for comparison (remove +88 prefix and spaces)
+const normalizePhone = (phone: string): string => {
+  if (!phone) return '';
+  let clean = phone.replace(/[\s\-()]/g, '');
+  if (clean.startsWith('+880')) clean = '0' + clean.substring(4);
+  else if (clean.startsWith('880')) clean = '0' + clean.substring(3);
+  return clean;
+};
+
+// Normalize student ID for comparison
+const normalizeStudentId = (studentId: string): string => {
+  if (!studentId) return '';
+  return studentId.replace(/[\s-]/g, '').toLowerCase();
+};
+
+// Check for duplicate values in arrays
+const findDuplicates = (values: string[]): string[] => {
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+  
+  for (const value of values) {
+    if (value && seen.has(value)) {
+      duplicates.add(value);
+    }
+    if (value) seen.add(value);
+  }
+  
+  return Array.from(duplicates);
+};
 
 export default function TeamRegistrationPage() {
   const { user, profile, isLoading: authLoading, signOut, refreshProfile } = useAuth();
@@ -32,13 +196,15 @@ export default function TeamRegistrationPage() {
     leaderName: '',
     leaderEmail: '',
     phone: '',
-    universityId: '',
+    studentId: '',
     department: '',
+    nationality: 'Bangladesh',
     transactionId: '',
   });
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
 
   // Debug logging
   useEffect(() => {
@@ -69,25 +235,94 @@ export default function TeamRegistrationPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => ({ ...prev, [name]: '' }));
+    }
+    
+    // Auto-select department based on student ID (always update on change)
+    if (name === 'studentId' && value.length >= 5) {
+      const cleanId = value.replace(/[\s-]/g, '');
+      const deptDigit = cleanId.charAt(4);
+      if (DEPARTMENT_MAP[deptDigit]) {
+        setFormData(prev => ({ ...prev, [name]: value, department: DEPARTMENT_MAP[deptDigit] }));
+      }
+    }
   };
 
-  const handleMemberChange = (id: string, field: 'name' | 'studentId', value: string) => {
+  // Validate student ID on blur
+  const handleStudentIdBlur = () => {
+    if (formData.studentId) {
+      const result = validateStudentId(formData.studentId);
+      if (!result.valid) {
+        setFieldErrors(prev => ({ ...prev, studentId: result.error || '' }));
+      } else if (result.department && !formData.department) {
+        setFormData(prev => ({ ...prev, department: result.department || '' }));
+      }
+    }
+  };
+
+  // Validate phone on blur
+  const handlePhoneBlur = () => {
+    if (formData.phone) {
+      const result = validateBangladeshiPhone(formData.phone);
+      if (!result.valid) {
+        setFieldErrors(prev => ({ ...prev, phone: result.error || '' }));
+      }
+    }
+  };
+
+  const handleMemberChange = (id: string, field: 'name' | 'studentId' | 'phone' | 'nationality', value: string) => {
     setTeamMembers(prev =>
       prev.map(member =>
         member.id === id ? { ...member, [field]: value } : member
       )
     );
+    
+    // Clear member error
+    setFieldErrors(prev => ({ ...prev, [`member_${id}_${field}`]: '' }));
+  };
+
+  // Validate member student ID on blur
+  const handleMemberStudentIdBlur = (id: string, studentId: string) => {
+    if (studentId) {
+      const result = validateStudentId(studentId);
+      if (!result.valid) {
+        setFieldErrors(prev => ({ ...prev, [`member_${id}_studentId`]: result.error || '' }));
+      }
+    }
+  };
+
+  // Validate member phone on blur
+  const handleMemberPhoneBlur = (id: string, phone: string) => {
+    if (phone) {
+      const result = validateBangladeshiPhone(phone);
+      if (!result.valid) {
+        setFieldErrors(prev => ({ ...prev, [`member_${id}_phone`]: result.error || '' }));
+      }
+    }
   };
 
   const addMember = () => {
     setTeamMembers(prev => [
       ...prev,
-      { id: Date.now().toString(), name: '', studentId: '' }
+      { id: Date.now().toString(), name: '', studentId: '', phone: '', nationality: 'Bangladesh' }
     ]);
   };
 
   const removeMember = (id: string) => {
     setTeamMembers(prev => prev.filter(m => m.id !== id));
+    // Clear any related errors
+    setFieldErrors(prev => {
+      const newErrors = { ...prev };
+      Object.keys(newErrors).forEach(key => {
+        if (key.startsWith(`member_${id}`)) {
+          delete newErrors[key];
+        }
+      });
+      return newErrors;
+    });
   };
 
   const handleSignOut = async () => {
@@ -99,11 +334,124 @@ export default function TeamRegistrationPage() {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+    setFieldErrors({});
 
     console.log('Starting registration...', { user, formData });
 
     if (!user) {
       setError('You must be logged in to register a team.');
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate all fields before submission
+    const errors: { [key: string]: string } = {};
+    
+    // Validate leader student ID
+    const studentIdResult = validateStudentId(formData.studentId);
+    if (!studentIdResult.valid) {
+      errors.studentId = studentIdResult.error || 'Invalid student ID';
+    }
+    
+    // Validate phone
+    const phoneResult = validateBangladeshiPhone(formData.phone);
+    if (!phoneResult.valid) {
+      errors.phone = phoneResult.error || 'Invalid phone number';
+    }
+    
+    // Validate member fields
+    const activeMembers = teamMembers.filter(m => m.name.trim());
+    for (const member of activeMembers) {
+      // Student ID is required for members
+      if (!member.studentId || !member.studentId.trim()) {
+        errors[`member_${member.id}_studentId`] = 'Student ID is required';
+      } else {
+        const memberStudentIdResult = validateStudentId(member.studentId);
+        if (!memberStudentIdResult.valid) {
+          errors[`member_${member.id}_studentId`] = memberStudentIdResult.error || 'Invalid student ID';
+        }
+      }
+      // Phone is required for members
+      if (!member.phone || !member.phone.trim()) {
+        errors[`member_${member.id}_phone`] = 'Phone number is required';
+      } else {
+        const memberPhoneResult = validateBangladeshiPhone(member.phone);
+        if (!memberPhoneResult.valid) {
+          errors[`member_${member.id}_phone`] = memberPhoneResult.error || 'Invalid phone number';
+        }
+      }
+      // Nationality is required
+      if (!member.nationality || !member.nationality.trim()) {
+        errors[`member_${member.id}_nationality`] = 'Nationality is required';
+      }
+    }
+    
+    // Check for duplicate student IDs
+    const allStudentIds = [
+      normalizeStudentId(formData.studentId),
+      ...activeMembers.map(m => normalizeStudentId(m.studentId))
+    ].filter(id => id);
+    
+    const duplicateStudentIds = findDuplicates(allStudentIds);
+    if (duplicateStudentIds.length > 0) {
+      // Find which fields have duplicates
+      const leaderNormalized = normalizeStudentId(formData.studentId);
+      if (duplicateStudentIds.includes(leaderNormalized)) {
+        errors.studentId = 'This Student ID is already used by another team member';
+      }
+      for (const member of activeMembers) {
+        const memberNormalized = normalizeStudentId(member.studentId);
+        if (duplicateStudentIds.includes(memberNormalized)) {
+          // Check if it matches leader or another member
+          if (memberNormalized === leaderNormalized) {
+            errors[`member_${member.id}_studentId`] = 'This Student ID is same as team leader';
+          } else {
+            // Check against other members
+            const otherMembers = activeMembers.filter(m => m.id !== member.id);
+            for (const other of otherMembers) {
+              if (normalizeStudentId(other.studentId) === memberNormalized) {
+                errors[`member_${member.id}_studentId`] = 'Duplicate Student ID with another team member';
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // Check for duplicate phone numbers
+    const allPhones = [
+      normalizePhone(formData.phone),
+      ...activeMembers.map(m => normalizePhone(m.phone))
+    ].filter(p => p);
+    
+    const duplicatePhones = findDuplicates(allPhones);
+    if (duplicatePhones.length > 0) {
+      const leaderNormalized = normalizePhone(formData.phone);
+      if (duplicatePhones.includes(leaderNormalized)) {
+        errors.phone = 'This phone number is already used by another team member';
+      }
+      for (const member of activeMembers) {
+        const memberNormalized = normalizePhone(member.phone);
+        if (duplicatePhones.includes(memberNormalized)) {
+          if (memberNormalized === leaderNormalized) {
+            errors[`member_${member.id}_phone`] = 'This phone number is same as team leader';
+          } else {
+            const otherMembers = activeMembers.filter(m => m.id !== member.id);
+            for (const other of otherMembers) {
+              if (normalizePhone(other.phone) === memberNormalized) {
+                errors[`member_${member.id}_phone`] = 'Duplicate phone number with another team member';
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setError('Please fix the validation errors before submitting.');
       setIsLoading(false);
       return;
     }
@@ -119,10 +467,17 @@ export default function TeamRegistrationPage() {
           leader_name: formData.leaderName,
           leader_email: formData.leaderEmail,
           leader_phone: formData.phone,
+          leader_student_id: formData.studentId,
           department: formData.department,
+          nationality: formData.nationality,
           transaction_id: formData.transactionId,
           payment_verified: false,
-          members: teamMembers.filter(m => m.name.trim() !== ''),
+          members: teamMembers.filter(m => m.name.trim() !== '').map(m => ({
+            name: m.name.trim(),
+            studentId: m.studentId.trim(),
+            phone: m.phone.trim(),
+            nationality: m.nationality
+          })),
         })
         .select()
         .single();
@@ -362,27 +717,46 @@ export default function TeamRegistrationPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-white mb-2">Phone *</label>
+                    <label className="block text-sm font-medium text-white mb-2">Student ID *</label>
                     <Input
-                      type="tel"
-                      name="phone"
-                      placeholder="+880 1XXX-XXXXXX"
-                      value={formData.phone}
+                      type="text"
+                      name="studentId"
+                      placeholder="e.g., 240042101"
+                      value={formData.studentId}
                       onChange={handleInputChange}
+                      onBlur={handleStudentIdBlur}
                       required
-                      className="bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors"
+                      className={`bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors ${fieldErrors.studentId ? 'border-red-500/50' : ''}`}
                     />
+                    {fieldErrors.studentId && (
+                      <p className="text-xs text-red-400 mt-1">{fieldErrors.studentId}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">Format: YY00DPS## (e.g., 240042101)</p>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-white mb-2">Department *</label>
                     <Select
                       value={formData.department}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, department: value }))}
+                      onValueChange={(value) => {
+                        // Check if student ID has a valid department digit
+                        const cleanId = formData.studentId.replace(/[\s-]/g, '');
+                        if (cleanId.length >= 5) {
+                          const deptDigit = cleanId.charAt(4);
+                          const expectedDept = DEPARTMENT_MAP[deptDigit];
+                          if (expectedDept && value !== expectedDept) {
+                            setFieldErrors(prev => ({ ...prev, department: `Department must match Student ID (${expectedDept})` }));
+                            return;
+                          }
+                        }
+                        setFieldErrors(prev => ({ ...prev, department: '' }));
+                        setFormData(prev => ({ ...prev, department: value }));
+                      }}
                       required
+                      disabled={formData.studentId.length >= 5 && !!DEPARTMENT_MAP[formData.studentId.replace(/[\s-]/g, '').charAt(4)]}
                     >
-                      <SelectTrigger className="w-full bg-background/50 border-border/50 text-white focus:border-accent/50">
-                        <SelectValue placeholder="Select department" />
+                      <SelectTrigger className={`w-full bg-background/50 border-border/50 text-white focus:border-accent/50 ${formData.studentId.length >= 5 ? 'opacity-70 cursor-not-allowed' : ''}`}>
+                        <SelectValue placeholder="Auto-detected from ID" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="CSE">CSE</SelectItem>
@@ -392,6 +766,55 @@ export default function TeamRegistrationPage() {
                         <SelectItem value="TVE">TVE</SelectItem>
                       </SelectContent>
                     </Select>
+                    {fieldErrors.department ? (
+                      <p className="text-xs text-red-400 mt-1">{fieldErrors.department}</p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formData.studentId.length >= 5 ? 'Locked based on Student ID' : 'Auto-selected from Student ID'}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-white mb-2">Phone (Bangladesh) *</label>
+                    <Input
+                      type="tel"
+                      name="phone"
+                      placeholder="01XXXXXXXXX"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      onBlur={handlePhoneBlur}
+                      required
+                      className={`bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors ${fieldErrors.phone ? 'border-red-500/50' : ''}`}
+                    />
+                    {fieldErrors.phone && (
+                      <p className="text-xs text-red-400 mt-1">{fieldErrors.phone}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">11 digits or +880 format</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-white mb-2 flex items-center gap-2">
+                      <Globe className="w-4 h-4 text-accent" />
+                      Nationality *
+                    </label>
+                    <Select
+                      value={formData.nationality}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, nationality: value }))}
+                      required
+                    >
+                      <SelectTrigger className="w-full bg-background/50 border-border/50 text-white focus:border-accent/50">
+                        <SelectValue placeholder="Select country" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {OIC_COUNTRIES.map((country) => (
+                          <SelectItem key={country} value={country}>{country}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">OIC member countries only</p>
                   </div>
                 </div>
               </div>
@@ -430,38 +853,93 @@ export default function TeamRegistrationPage() {
                     </div>
                   ) : (
                     teamMembers.map((member, idx) => (
-                      <div key={member.id} className="flex gap-3 items-end p-4 bg-background/30 rounded-xl border border-border/30">
-                        <div className="flex-1 space-y-2">
-                          <label className="block text-sm font-medium text-white">
-                            Member {idx + 1} Name
-                          </label>
-                          <Input
-                            type="text"
-                            placeholder="Full name"
-                            value={member.name}
-                            onChange={(e) => handleMemberChange(member.id, 'name', e.target.value)}
-                            className="bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors"
-                          />
+                      <div key={member.id} className="p-5 bg-background/30 rounded-xl border border-border/30 space-y-4">
+                        {/* Header with member number and remove button */}
+                        <div className="flex items-center justify-between pb-2 border-b border-border/20">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 bg-accent/10 rounded-full flex items-center justify-center border border-accent/30">
+                              <span className="text-xs font-medium text-accent">{idx + 1}</span>
+                            </div>
+                            <span className="text-sm font-medium text-white">Team Member</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeMember(member.id)}
+                            className="p-1.5 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
-                        <div className="flex-1 space-y-2">
-                          <label className="block text-sm font-medium text-white">
-                            Student ID
-                          </label>
-                          <Input
-                            type="text"
-                            placeholder="IUT-XXXX-XXX"
-                            value={member.studentId}
-                            onChange={(e) => handleMemberChange(member.id, 'studentId', e.target.value)}
-                            className="bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors"
-                          />
+
+                        {/* Name and Student ID row */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="block text-sm font-medium text-white">
+                              Full Name *
+                            </label>
+                            <Input
+                              type="text"
+                              placeholder="Enter full name"
+                              value={member.name}
+                              onChange={(e) => handleMemberChange(member.id, 'name', e.target.value)}
+                              className="bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="block text-sm font-medium text-white">
+                              Student ID *
+                            </label>
+                            <Input
+                              type="text"
+                              placeholder="e.g., 240042101"
+                              value={member.studentId}
+                              onChange={(e) => handleMemberChange(member.id, 'studentId', e.target.value)}
+                              onBlur={() => handleMemberStudentIdBlur(member.id, member.studentId)}
+                              className={`bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors ${fieldErrors[`member_${member.id}_studentId`] ? 'border-red-500/50' : ''}`}
+                            />
+                            {fieldErrors[`member_${member.id}_studentId`] && (
+                              <p className="text-xs text-red-400 mt-1">{fieldErrors[`member_${member.id}_studentId`]}</p>
+                            )}
+                          </div>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => removeMember(member.id)}
-                          className="p-2.5 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+                        
+                        {/* Phone and Nationality row */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="block text-sm font-medium text-white">
+                              Phone (Bangladesh) *
+                            </label>
+                            <Input
+                              type="tel"
+                              placeholder="01XXXXXXXXX"
+                              value={member.phone}
+                              onChange={(e) => handleMemberChange(member.id, 'phone', e.target.value)}
+                              onBlur={() => handleMemberPhoneBlur(member.id, member.phone)}
+                              className={`bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors ${fieldErrors[`member_${member.id}_phone`] ? 'border-red-500/50' : ''}`}
+                            />
+                            {fieldErrors[`member_${member.id}_phone`] && (
+                              <p className="text-xs text-red-400 mt-1">{fieldErrors[`member_${member.id}_phone`]}</p>
+                            )}
+                          </div>
+                          <div className="space-y-2">
+                            <label className="block text-sm font-medium text-white">
+                              Nationality *
+                            </label>
+                            <Select
+                              value={member.nationality}
+                              onValueChange={(value) => handleMemberChange(member.id, 'nationality', value)}
+                            >
+                              <SelectTrigger className="w-full bg-background/50 border-border/50 text-white focus:border-accent/50">
+                                <SelectValue placeholder="Select country" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-60">
+                                {OIC_COUNTRIES.map((country) => (
+                                  <SelectItem key={country} value={country}>{country}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
                       </div>
                     ))
                   )}
@@ -513,7 +991,7 @@ export default function TeamRegistrationPage() {
               <div className="pt-4">
                 <Button
                   type="submit"
-                  disabled={isLoading || !formData.teamName || !formData.leaderName || !formData.phone || !formData.department || !formData.transactionId}
+                  disabled={isLoading || !formData.teamName || !formData.leaderName || !formData.studentId || !formData.phone || !formData.department || !formData.nationality || !formData.transactionId}
                   className="w-full bg-accent hover:bg-accent/90 text-white h-14 text-base font-semibold disabled:opacity-50 shadow-lg shadow-accent/25 hover:shadow-accent/40 hover:scale-[1.01] active:scale-[0.99] transition-all"
                 >
                   {isLoading ? (
