@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, CheckCircle, Upload, Send, FileCode, Github, FolderArchive, Sparkles, AlertCircle } from 'lucide-react';
+import { ScrollToTop } from '@/components/scroll-to-top';
 
 export default function SubmissionPage() {
   const [step, setStep] = useState<'form' | 'success'>('form');
@@ -355,6 +356,8 @@ Installation Instructions:
           </Card>
         </div>
       </div>
+
+      <ScrollToTop />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { LogOut, Search, Eye, Check, X, Filter, ChevronDown, Users, FileText, CheckCircle, Shield, Sparkles } from 'lucide-react';
+import { ScrollToTop } from '@/components/scroll-to-top';
 
 type Tab = 'teams' | 'submissions' | 'verification';
 type VerificationStatus = 'pending' | 'approved' | 'rejected';
@@ -389,6 +390,8 @@ export default function AdminPanel() {
           )}
         </div>
       </div>
+
+      <ScrollToTop />
     </div>
   );
 }

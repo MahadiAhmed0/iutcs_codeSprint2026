@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Chrome, ArrowLeft, Code2, Users, Trophy, Sparkles } from 'lucide-react';
+import { ScrollToTop } from '@/components/scroll-to-top';
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -174,6 +175,8 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      <ScrollToTop />
     </div>
   );
 }
