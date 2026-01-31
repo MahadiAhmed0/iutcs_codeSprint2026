@@ -10,16 +10,135 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Plus, Trash2, CheckCircle, Users, User, Sparkles, Rocket, Wallet, AlertCircle, LogOut } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, CheckCircle, Users, User, Sparkles, Rocket, Wallet, AlertCircle, LogOut, Globe } from 'lucide-react';
 import { ScrollToTop } from '@/components/scroll-to-top';
 import { useAuth } from '@/contexts/auth-context';
 import { createClient } from '@/lib/supabase/client';
+
+// OIC Countries List
+const OIC_COUNTRIES = [
+  "Afghanistan", "Albania", "Algeria", "Azerbaijan", "Bahrain", "Bangladesh",
+  "Benin", "Brunei", "Burkina Faso", "Cameroon", "Chad", "Comoros",
+  "Djibouti", "Egypt", "Gabon", "Gambia", "Guinea", "Guinea-Bissau",
+  "Guyana", "Indonesia", "Iran", "Iraq", "Ivory Coast", "Jordan",
+  "Kazakhstan", "Kuwait", "Kyrgyzstan", "Lebanon", "Libya", "Malaysia",
+  "Maldives", "Mali", "Mauritania", "Morocco", "Mozambique", "Niger",
+  "Nigeria", "Oman", "Pakistan", "Palestine", "Qatar", "Saudi Arabia",
+  "Senegal", "Sierra Leone", "Somalia", "Sudan", "Suriname", "Syria",
+  "Tajikistan", "Togo", "Tunisia", "Turkey", "Turkmenistan", "Uganda",
+  "United Arab Emirates", "Uzbekistan", "Yemen"
+];
+
+// Department mapping based on student ID digit
+const DEPARTMENT_MAP: { [key: string]: string } = {
+  '1': 'MPE',
+  '2': 'BTM',
+  '3': 'EEE',
+  '4': 'CSE',
+  '5': 'TVE',
+};
 
 interface TeamMember {
   id: string;
   name: string;
   studentId: string;
 }
+
+// Validation functions
+const validateStudentId = (studentId: string): { valid: boolean; error?: string; department?: string } => {
+  // Format: YYXXDP### where YY=22/23/24, XX=00, D=1-5 (dept), P=program, ###=001-999
+  // Total: 9 digits like 240042101
+  
+  if (!studentId) return { valid: false, error: 'Student ID is required' };
+  
+  // Remove any spaces or dashes
+  const cleanId = studentId.replace(/[\s-]/g, '');
+  
+  if (!/^\d{9}$/.test(cleanId)) {
+    return { valid: false, error: 'Student ID must be exactly 9 digits' };
+  }
+  
+  const year = cleanId.substring(0, 2);
+  const fixed = cleanId.substring(2, 4);
+  const dept = cleanId.substring(4, 5);
+  const program = cleanId.substring(5, 6);
+  const rollNum = cleanId.substring(6, 9);
+  
+  // Validate year (22, 23, 24)
+  if (!['22', '23', '24'].includes(year)) {
+    return { valid: false, error: 'First 2 digits must be 22, 23, or 24' };
+  }
+  
+  // Validate fixed digits (00)
+  if (fixed !== '00') {
+    return { valid: false, error: 'Digits 3-4 must be 00' };
+  }
+  
+  // Validate department digit (1-5)
+  if (!['1', '2', '3', '4', '5'].includes(dept)) {
+    return { valid: false, error: 'Digit 5 must be 1-5 (1:MPE, 2:BTM, 3:EEE, 4:CSE, 5:TVE)' };
+  }
+  
+  // Validate program digit based on department
+  // EEE (3): 1-3, CSE (4): 1-2, MPE (1): 1-2, BTM (2): 1, TVE (5): 1
+  const programInt = parseInt(program, 10);
+  if (dept === '3') { // EEE
+    if (programInt < 1 || programInt > 3) {
+      return { valid: false, error: 'Digit 6 must be 1-3 for EEE department' };
+    }
+  } else if (dept === '4' || dept === '1') { // CSE or MPE
+    if (programInt < 1 || programInt > 2) {
+      return { valid: false, error: `Digit 6 must be 1-2 for ${dept === '4' ? 'CSE' : 'MPE'} department` };
+    }
+  } else { // BTM (2) or TVE (5)
+    if (programInt !== 1) {
+      return { valid: false, error: `Digit 6 must be 1 for ${dept === '2' ? 'BTM' : 'TVE'} department` };
+    }
+  }
+  
+  // Validate roll number (001-999)
+  const rollNumInt = parseInt(rollNum, 10);
+  if (rollNumInt < 1 || rollNumInt > 999) {
+    return { valid: false, error: 'Last 3 digits must be 001-999' };
+  }
+  
+  return { valid: true, department: DEPARTMENT_MAP[dept] };
+};
+
+const validateBangladeshiPhone = (phone: string): { valid: boolean; error?: string } => {
+  if (!phone) return { valid: false, error: 'Phone number is required' };
+  
+  // Remove spaces, dashes, and parentheses
+  const cleanPhone = phone.replace(/[\s\-()]/g, '');
+  
+  // Check for +880 format (14 digits total: +880 followed by 10 digits starting with 1)
+  if (cleanPhone.startsWith('+880')) {
+    const number = cleanPhone.substring(4);
+    if (!/^1[3-9]\d{8}$/.test(number)) {
+      return { valid: false, error: 'Invalid format. Use +880 1XXXXXXXXX' };
+    }
+    return { valid: true };
+  }
+  
+  // Check for 880 format (13 digits: 880 followed by 10 digits starting with 1)
+  if (cleanPhone.startsWith('880')) {
+    const number = cleanPhone.substring(3);
+    if (!/^1[3-9]\d{8}$/.test(number)) {
+      return { valid: false, error: 'Invalid format. Use 880 1XXXXXXXXX' };
+    }
+    return { valid: true };
+  }
+  
+  // Check for 01X format (11 digits starting with 01)
+  if (cleanPhone.startsWith('01')) {
+    if (!/^01[3-9]\d{8}$/.test(cleanPhone)) {
+      return { valid: false, error: 'Invalid format. Use 01XXXXXXXXX (11 digits)' };
+    }
+    return { valid: true };
+  }
+  
+  return { valid: false, error: 'Must be a valid Bangladeshi number (01XXXXXXXXX or +8801XXXXXXXXX)' };
+};
 
 export default function TeamRegistrationPage() {
   const { user, profile, isLoading: authLoading, signOut, refreshProfile } = useAuth();
@@ -32,13 +151,15 @@ export default function TeamRegistrationPage() {
     leaderName: '',
     leaderEmail: '',
     phone: '',
-    universityId: '',
+    studentId: '',
     department: '',
+    nationality: 'Bangladesh',
     transactionId: '',
   });
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
 
   // Debug logging
   useEffect(() => {
@@ -69,6 +190,42 @@ export default function TeamRegistrationPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => ({ ...prev, [name]: '' }));
+    }
+    
+    // Auto-select department based on student ID (always update on change)
+    if (name === 'studentId' && value.length >= 5) {
+      const cleanId = value.replace(/[\s-]/g, '');
+      const deptDigit = cleanId.charAt(4);
+      if (DEPARTMENT_MAP[deptDigit]) {
+        setFormData(prev => ({ ...prev, [name]: value, department: DEPARTMENT_MAP[deptDigit] }));
+      }
+    }
+  };
+
+  // Validate student ID on blur
+  const handleStudentIdBlur = () => {
+    if (formData.studentId) {
+      const result = validateStudentId(formData.studentId);
+      if (!result.valid) {
+        setFieldErrors(prev => ({ ...prev, studentId: result.error || '' }));
+      } else if (result.department && !formData.department) {
+        setFormData(prev => ({ ...prev, department: result.department || '' }));
+      }
+    }
+  };
+
+  // Validate phone on blur
+  const handlePhoneBlur = () => {
+    if (formData.phone) {
+      const result = validateBangladeshiPhone(formData.phone);
+      if (!result.valid) {
+        setFieldErrors(prev => ({ ...prev, phone: result.error || '' }));
+      }
+    }
   };
 
   const handleMemberChange = (id: string, field: 'name' | 'studentId', value: string) => {
@@ -77,6 +234,19 @@ export default function TeamRegistrationPage() {
         member.id === id ? { ...member, [field]: value } : member
       )
     );
+    
+    // Clear member error
+    setFieldErrors(prev => ({ ...prev, [`member_${id}_${field}`]: '' }));
+  };
+
+  // Validate member student ID on blur
+  const handleMemberStudentIdBlur = (id: string, studentId: string) => {
+    if (studentId) {
+      const result = validateStudentId(studentId);
+      if (!result.valid) {
+        setFieldErrors(prev => ({ ...prev, [`member_${id}_studentId`]: result.error || '' }));
+      }
+    }
   };
 
   const addMember = () => {
@@ -99,11 +269,44 @@ export default function TeamRegistrationPage() {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+    setFieldErrors({});
 
     console.log('Starting registration...', { user, formData });
 
     if (!user) {
       setError('You must be logged in to register a team.');
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate all fields before submission
+    const errors: { [key: string]: string } = {};
+    
+    // Validate leader student ID
+    const studentIdResult = validateStudentId(formData.studentId);
+    if (!studentIdResult.valid) {
+      errors.studentId = studentIdResult.error || 'Invalid student ID';
+    }
+    
+    // Validate phone
+    const phoneResult = validateBangladeshiPhone(formData.phone);
+    if (!phoneResult.valid) {
+      errors.phone = phoneResult.error || 'Invalid phone number';
+    }
+    
+    // Validate member student IDs
+    for (const member of teamMembers) {
+      if (member.name.trim() && member.studentId) {
+        const memberResult = validateStudentId(member.studentId);
+        if (!memberResult.valid) {
+          errors[`member_${member.id}_studentId`] = memberResult.error || 'Invalid student ID';
+        }
+      }
+    }
+    
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setError('Please fix the validation errors before submitting.');
       setIsLoading(false);
       return;
     }
@@ -119,7 +322,9 @@ export default function TeamRegistrationPage() {
           leader_name: formData.leaderName,
           leader_email: formData.leaderEmail,
           leader_phone: formData.phone,
+          leader_student_id: formData.studentId,
           department: formData.department,
+          nationality: formData.nationality,
           transaction_id: formData.transactionId,
           payment_verified: false,
           members: teamMembers.filter(m => m.name.trim() !== ''),
@@ -362,27 +567,46 @@ export default function TeamRegistrationPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-white mb-2">Phone *</label>
+                    <label className="block text-sm font-medium text-white mb-2">Student ID *</label>
                     <Input
-                      type="tel"
-                      name="phone"
-                      placeholder="+880 1XXX-XXXXXX"
-                      value={formData.phone}
+                      type="text"
+                      name="studentId"
+                      placeholder="e.g., 240042101"
+                      value={formData.studentId}
                       onChange={handleInputChange}
+                      onBlur={handleStudentIdBlur}
                       required
-                      className="bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors"
+                      className={`bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors ${fieldErrors.studentId ? 'border-red-500/50' : ''}`}
                     />
+                    {fieldErrors.studentId && (
+                      <p className="text-xs text-red-400 mt-1">{fieldErrors.studentId}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">Format: YY00DPS## (e.g., 240042101)</p>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-white mb-2">Department *</label>
                     <Select
                       value={formData.department}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, department: value }))}
+                      onValueChange={(value) => {
+                        // Check if student ID has a valid department digit
+                        const cleanId = formData.studentId.replace(/[\s-]/g, '');
+                        if (cleanId.length >= 5) {
+                          const deptDigit = cleanId.charAt(4);
+                          const expectedDept = DEPARTMENT_MAP[deptDigit];
+                          if (expectedDept && value !== expectedDept) {
+                            setFieldErrors(prev => ({ ...prev, department: `Department must match Student ID (${expectedDept})` }));
+                            return;
+                          }
+                        }
+                        setFieldErrors(prev => ({ ...prev, department: '' }));
+                        setFormData(prev => ({ ...prev, department: value }));
+                      }}
                       required
+                      disabled={formData.studentId.length >= 5 && !!DEPARTMENT_MAP[formData.studentId.replace(/[\s-]/g, '').charAt(4)]}
                     >
-                      <SelectTrigger className="w-full bg-background/50 border-border/50 text-white focus:border-accent/50">
-                        <SelectValue placeholder="Select department" />
+                      <SelectTrigger className={`w-full bg-background/50 border-border/50 text-white focus:border-accent/50 ${formData.studentId.length >= 5 ? 'opacity-70 cursor-not-allowed' : ''}`}>
+                        <SelectValue placeholder="Auto-detected from ID" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="CSE">CSE</SelectItem>
@@ -392,6 +616,55 @@ export default function TeamRegistrationPage() {
                         <SelectItem value="TVE">TVE</SelectItem>
                       </SelectContent>
                     </Select>
+                    {fieldErrors.department ? (
+                      <p className="text-xs text-red-400 mt-1">{fieldErrors.department}</p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formData.studentId.length >= 5 ? 'Locked based on Student ID' : 'Auto-selected from Student ID'}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-white mb-2">Phone (Bangladesh) *</label>
+                    <Input
+                      type="tel"
+                      name="phone"
+                      placeholder="01XXXXXXXXX"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      onBlur={handlePhoneBlur}
+                      required
+                      className={`bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors ${fieldErrors.phone ? 'border-red-500/50' : ''}`}
+                    />
+                    {fieldErrors.phone && (
+                      <p className="text-xs text-red-400 mt-1">{fieldErrors.phone}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">11 digits or +880 format</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-white mb-2 flex items-center gap-2">
+                      <Globe className="w-4 h-4 text-accent" />
+                      Nationality *
+                    </label>
+                    <Select
+                      value={formData.nationality}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, nationality: value }))}
+                      required
+                    >
+                      <SelectTrigger className="w-full bg-background/50 border-border/50 text-white focus:border-accent/50">
+                        <SelectValue placeholder="Select country" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {OIC_COUNTRIES.map((country) => (
+                          <SelectItem key={country} value={country}>{country}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">OIC member countries only</p>
                   </div>
                 </div>
               </div>
@@ -430,38 +703,44 @@ export default function TeamRegistrationPage() {
                     </div>
                   ) : (
                     teamMembers.map((member, idx) => (
-                      <div key={member.id} className="flex gap-3 items-end p-4 bg-background/30 rounded-xl border border-border/30">
-                        <div className="flex-1 space-y-2">
-                          <label className="block text-sm font-medium text-white">
-                            Member {idx + 1} Name
-                          </label>
-                          <Input
-                            type="text"
-                            placeholder="Full name"
-                            value={member.name}
-                            onChange={(e) => handleMemberChange(member.id, 'name', e.target.value)}
-                            className="bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors"
-                          />
+                      <div key={member.id} className="p-4 bg-background/30 rounded-xl border border-border/30 space-y-3">
+                        <div className="flex gap-3 items-end">
+                          <div className="flex-1 space-y-2">
+                            <label className="block text-sm font-medium text-white">
+                              Member {idx + 1} Name
+                            </label>
+                            <Input
+                              type="text"
+                              placeholder="Full name"
+                              value={member.name}
+                              onChange={(e) => handleMemberChange(member.id, 'name', e.target.value)}
+                              className="bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors"
+                            />
+                          </div>
+                          <div className="flex-1 space-y-2">
+                            <label className="block text-sm font-medium text-white">
+                              Student ID
+                            </label>
+                            <Input
+                              type="text"
+                              placeholder="e.g., 240042101"
+                              value={member.studentId}
+                              onChange={(e) => handleMemberChange(member.id, 'studentId', e.target.value)}
+                              onBlur={() => handleMemberStudentIdBlur(member.id, member.studentId)}
+                              className={`bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors ${fieldErrors[`member_${member.id}_studentId`] ? 'border-red-500/50' : ''}`}
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeMember(member.id)}
+                            className="p-2.5 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
                         </div>
-                        <div className="flex-1 space-y-2">
-                          <label className="block text-sm font-medium text-white">
-                            Student ID
-                          </label>
-                          <Input
-                            type="text"
-                            placeholder="IUT-XXXX-XXX"
-                            value={member.studentId}
-                            onChange={(e) => handleMemberChange(member.id, 'studentId', e.target.value)}
-                            className="bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors"
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeMember(member.id)}
-                          className="p-2.5 text-muted-foreground hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+                        {fieldErrors[`member_${member.id}_studentId`] && (
+                          <p className="text-xs text-red-400">{fieldErrors[`member_${member.id}_studentId`]}</p>
+                        )}
                       </div>
                     ))
                   )}
@@ -513,7 +792,7 @@ export default function TeamRegistrationPage() {
               <div className="pt-4">
                 <Button
                   type="submit"
-                  disabled={isLoading || !formData.teamName || !formData.leaderName || !formData.phone || !formData.department || !formData.transactionId}
+                  disabled={isLoading || !formData.teamName || !formData.leaderName || !formData.studentId || !formData.phone || !formData.department || !formData.nationality || !formData.transactionId}
                   className="w-full bg-accent hover:bg-accent/90 text-white h-14 text-base font-semibold disabled:opacity-50 shadow-lg shadow-accent/25 hover:shadow-accent/40 hover:scale-[1.01] active:scale-[0.99] transition-all"
                 >
                   {isLoading ? (

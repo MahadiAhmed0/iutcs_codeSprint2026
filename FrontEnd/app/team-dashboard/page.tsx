@@ -17,7 +17,9 @@ interface TeamData {
   leader_name: string;
   leader_email: string;
   leader_phone: string;
+  leader_student_id: string;
   department: string;
+  nationality: string;
   transaction_id: string;
   payment_verified: boolean;
   members: Array<{ name: string; studentId: string }>;
