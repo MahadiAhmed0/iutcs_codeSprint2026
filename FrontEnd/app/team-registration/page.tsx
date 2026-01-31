@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Plus, Trash2, CheckCircle, Users, User, Sparkles, Rocket } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, CheckCircle, Users, User, Sparkles, Rocket, Wallet } from 'lucide-react';
 import { ScrollToTop } from '@/components/scroll-to-top';
 
 interface TeamMember {
@@ -29,6 +29,7 @@ export default function TeamRegistrationPage() {
     phone: '',
     universityId: '',
     department: '',
+    transactionId: '',
   });
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -341,11 +342,52 @@ export default function TeamRegistrationPage() {
                 </div>
               </div>
 
+              {/* Payment Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-white">
+                  <div className="p-2 bg-pink-500/10 rounded-lg border border-pink-500/30">
+                    <Wallet className="w-4 h-4 text-pink-400" />
+                  </div>
+                  <h3 className="font-semibold">Payment Information</h3>
+                  <span className="px-2 py-0.5 bg-accent/10 text-accent text-xs rounded-full border border-accent/30">Required</span>
+                </div>
+                
+                <div className="bg-pink-500/5 border border-pink-500/20 rounded-xl p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Registration Fee</span>
+                    <span className="text-lg font-bold text-white">৳300</span>
+                  </div>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p>Send <span className="text-pink-400 font-semibold">300 BDT</span> to the following bKash number:</p>
+                    <p className="text-xl font-bold text-pink-400">01XXXXXXXXX</p>
+                    <p className="text-xs">(Personal/Merchant)</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-white">
+                    bKash Transaction ID <span className="text-accent">*</span>
+                  </label>
+                  <Input
+                    type="text"
+                    name="transactionId"
+                    placeholder="e.g., TRX1234567890"
+                    value={formData.transactionId}
+                    onChange={handleInputChange}
+                    required
+                    className="bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-pink-500/50 transition-colors"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Enter the transaction ID you received after sending the payment via bKash
+                  </p>
+                </div>
+              </div>
+
               {/* Submit */}
               <div className="pt-4">
                 <Button
                   type="submit"
-                  disabled={isLoading || !formData.teamName || !formData.leaderName || !formData.phone || !formData.department}
+                  disabled={isLoading || !formData.teamName || !formData.leaderName || !formData.phone || !formData.department || !formData.transactionId}
                   className="w-full bg-accent hover:bg-accent/90 text-white h-14 text-base font-semibold disabled:opacity-50 shadow-lg shadow-accent/25 hover:shadow-accent/40 hover:scale-[1.01] active:scale-[0.99] transition-all"
                 >
                   {isLoading ? (
