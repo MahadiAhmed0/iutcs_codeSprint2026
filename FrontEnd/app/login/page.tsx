@@ -1,24 +1,53 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Chrome, ArrowLeft, Code2, Users, Trophy, Sparkles } from 'lucide-react';
+import { Chrome, ArrowLeft, Code2, Users, Trophy, Sparkles, AlertCircle } from 'lucide-react';
 import { ScrollToTop } from '@/components/scroll-to-top';
+import { useAuth } from '@/contexts/auth-context';
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { signInWithGoogle, user, profile, isLoading: authLoading } = useAuth();
+
+  // Check for error in URL params
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam === 'auth_callback_error') {
+      setError('Authentication failed. Please try again.');
+    }
+  }, [searchParams]);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && user && profile) {
+      if (profile.role === 'admin') {
+        router.push('/admin');
+      } else if (profile.is_registered) {
+        router.push('/team-dashboard');
+      } else {
+        router.push('/team-registration');
+      }
+    }
+  }, [user, profile, authLoading, router]);
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
-   
-    setTimeout(() => {
-      router.push('/team-registration');
-    }, 1000);
+    setError(null);
+    
+    try {
+      await signInWithGoogle();
+    } catch (err) {
+      setError('Failed to sign in with Google. Please try again.');
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -94,6 +123,14 @@ export default function LoginPage() {
             ))}
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <div className="relative flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              {error}
+            </div>
+          )}
+
           {/* Form Section */}
           <div className="relative space-y-4">
             <div className="text-center">
@@ -136,32 +173,15 @@ export default function LoginPage() {
             <div className="relative flex justify-center text-sm">
               <span className="px-4 bg-card text-muted-foreground flex items-center gap-2">
                 <Sparkles className="w-3 h-3 text-accent" />
-                Register as Team Leader
+                IUT Computer Society
                 <Sparkles className="w-3 h-3 text-accent" />
               </span>
             </div>
           </div>
 
-          {/* Register Team Button */}
-          <div className="relative">
-            <button
-              onClick={() => {
-                setIsLoading(true);
-                setTimeout(() => router.push('/team-registration'), 1000);
-              }}
-              disabled={isLoading}
-              className="w-full px-6 py-4 bg-gradient-to-r from-accent/10 to-primary/10 border border-accent/30 rounded-xl hover:border-accent/60 hover:from-accent/20 hover:to-primary/20 transition-all duration-300 group disabled:opacity-50"
-            >
-              <div className="flex items-center justify-center gap-3">
-                <div className="w-10 h-10 bg-accent/20 rounded-lg flex items-center justify-center border border-accent/30 group-hover:scale-110 transition-transform">
-                  <Users className="w-5 h-5 text-accent" />
-                </div>
-                <div className="text-left">
-                  <p className="text-base font-semibold text-white">Register Your Team</p>
-                  <p className="text-xs text-muted-foreground">Solo, Duo, or Trio — Lead your squad to victory!</p>
-                </div>
-              </div>
-            </button>
+          {/* Info */}
+          <div className="relative text-center text-sm text-muted-foreground">
+            <p>Sign in with your Google account to register your team or access your dashboard.</p>
           </div>
         </Card>
 

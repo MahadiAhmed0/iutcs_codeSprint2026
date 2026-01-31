@@ -1,21 +1,86 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { LogOut, Send, Settings, Users, FileText, CheckCircle, Clock, Sparkles, ArrowRight } from 'lucide-react';
 import { ScrollToTop } from '@/components/scroll-to-top';
+import { useAuth } from '@/contexts/auth-context';
+import { createClient } from '@/lib/supabase/client';
+
+interface TeamData {
+  id: string;
+  name: string;
+  leader_name: string;
+  leader_email: string;
+  leader_phone: string;
+  department: string;
+  transaction_id: string;
+  members: Array<{ name: string; studentId: string }>;
+  submission_status: string;
+  submission_date: string | null;
+  created_at: string;
+}
 
 export default function TeamDashboard() {
-  const teamData = {
-    teamName: 'Code Warriors',
-    leaderName: 'John Doe',
-    email: 'john@gmail.com',
-    memberCount: 3,
-    submissionStatus: 'pending', // pending, submitted, approved, rejected
-    submissionDate: null
+  const { user, profile, isLoading: authLoading, signOut } = useAuth();
+  const router = useRouter();
+  const supabase = createClient();
+  
+  const [teamData, setTeamData] = useState<TeamData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTeamData = async () => {
+      if (!authLoading && user && profile?.team_id) {
+        const { data, error } = await supabase
+          .from('teams')
+          .select('*')
+          .eq('id', profile.team_id)
+          .single();
+
+        if (data && !error) {
+          setTeamData(data);
+        }
+        setIsLoading(false);
+      } else if (!authLoading && !user) {
+        router.push('/login');
+      } else if (!authLoading && user && !profile?.is_registered) {
+        router.push('/team-registration');
+      }
+    };
+
+    fetchTeamData();
+  }, [user, profile, authLoading, router, supabase]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/');
   };
+
+  // Loading state
+  if (authLoading || isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  // Get display data
+  const displayData = teamData || {
+    name: profile?.full_name || 'Your Team',
+    leader_name: user?.user_metadata?.full_name || 'Team Leader',
+    leader_email: user?.email || '',
+    members: [],
+    submission_status: 'pending',
+    submission_date: null,
+  };
+
+  const memberCount = (teamData?.members?.length || 0) + 1; // +1 for leader
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -47,12 +112,15 @@ export default function TeamDashboard() {
             <button className="p-2 hover:bg-accent/10 rounded-lg transition-colors group">
               <Settings className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />
             </button>
-            <Link href="/">
-              <Button variant="outline" size="sm" className="border-border/50 text-white hover:bg-accent/10 hover:border-accent/30 gap-2 bg-transparent transition-all">
-                <LogOut className="w-4 h-4" />
-                Logout
-              </Button>
-            </Link>
+            <Button 
+              onClick={handleSignOut}
+              variant="outline" 
+              size="sm" 
+              className="border-border/50 text-white hover:bg-accent/10 hover:border-accent/30 gap-2 bg-transparent transition-all"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </Button>
           </div>
         </div>
       </nav>
@@ -67,7 +135,7 @@ export default function TeamDashboard() {
           </div>
           <h1 className="text-4xl font-bold">
             <span className="bg-gradient-to-r from-white via-white to-accent bg-clip-text text-transparent">
-              Welcome, {teamData.leaderName}!
+              Welcome, {displayData.leader_name}!
             </span>
           </h1>
           <p className="text-muted-foreground text-lg">Manage your team and submit your project</p>
@@ -79,12 +147,12 @@ export default function TeamDashboard() {
           <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
               <p className="text-muted-foreground text-sm">Team Name</p>
-              <p className="text-xl font-bold text-white">{teamData.teamName}</p>
+              <p className="text-xl font-bold text-white">{displayData.name}</p>
             </div>
             
             <div className="space-y-2">
               <p className="text-muted-foreground text-sm">Team Members</p>
-              <p className="text-xl font-bold text-white">{teamData.memberCount}</p>
+              <p className="text-xl font-bold text-white">{memberCount}</p>
               <Link href="#members" className="text-accent text-xs hover:underline inline-flex items-center gap-1 group">
                 View Members
                 <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
@@ -95,7 +163,7 @@ export default function TeamDashboard() {
               <p className="text-muted-foreground text-sm">Status</p>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
-                <p className="text-white font-semibold capitalize">{teamData.submissionStatus}</p>
+                <p className="text-white font-semibold capitalize">{displayData.submission_status}</p>
               </div>
             </div>
           </div>
@@ -115,7 +183,7 @@ export default function TeamDashboard() {
               </h2>
               
               <div className="space-y-4">
-                {teamData.submissionStatus === 'pending' ? (
+                {displayData.submission_status === 'pending' ? (
                   <>
                     <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
                       <p className="text-sm text-amber-200 flex items-center gap-2">
@@ -130,14 +198,14 @@ export default function TeamDashboard() {
                       </Button>
                     </Link>
                   </>
-                ) : teamData.submissionStatus === 'submitted' ? (
+                ) : displayData.submission_status === 'submitted' ? (
                   <>
                     <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 space-y-2">
                       <p className="text-sm text-blue-200 font-semibold flex items-center gap-2">
                         <CheckCircle className="w-4 h-4" />
                         Submitted
                       </p>
-                      <p className="text-xs text-blue-200/70">{teamData.submissionDate}</p>
+                      <p className="text-xs text-blue-200/70">{displayData.submission_date}</p>
                     </div>
                     <Button variant="outline" className="w-full border-border/50 text-white hover:bg-accent/10 hover:border-accent/30 bg-transparent transition-all">
                       View Submission
@@ -179,8 +247,8 @@ export default function TeamDashboard() {
               <h2 className="relative text-lg font-semibold text-white">Team Leader</h2>
               <div className="relative flex items-start justify-between">
                 <div className="space-y-2">
-                  <p className="text-white font-medium text-lg">{teamData.leaderName}</p>
-                  <p className="text-muted-foreground text-sm">{teamData.email}</p>
+                  <p className="text-white font-medium text-lg">{displayData.leader_name}</p>
+                  <p className="text-muted-foreground text-sm">{displayData.leader_email}</p>
                   <span className="inline-block px-3 py-1 bg-accent/10 text-accent text-xs rounded-full border border-accent/20">
                     Team Leader
                   </span>
@@ -188,7 +256,7 @@ export default function TeamDashboard() {
                 <div className="relative">
                   <div className="absolute inset-0 bg-accent/20 rounded-full blur-lg"></div>
                   <div className="relative w-14 h-14 bg-gradient-to-br from-accent/20 to-accent/5 rounded-full flex items-center justify-center border border-accent/50 shadow-lg">
-                    <span className="text-accent font-bold text-xl">{teamData.leaderName.charAt(0)}</span>
+                    <span className="text-accent font-bold text-xl">{displayData.leader_name?.charAt(0) || 'T'}</span>
                   </div>
                 </div>
               </div>
@@ -201,38 +269,58 @@ export default function TeamDashboard() {
                   <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center border border-accent/20">
                     <Users className="w-4 h-4 text-accent" />
                   </div>
-                  Team Members ({teamData.memberCount})
+                  Team Members ({memberCount})
                 </h2>
               </div>
 
               <div className="space-y-3">
-                {[
-                  { name: 'John Doe', id: 'IUT-2024-001', role: 'Team Leader' },
-                  { name: 'Jane Smith', id: 'IUT-2024-002', role: 'Member' },
-                  { name: 'Mike Johnson', id: 'IUT-2024-003', role: 'Member' }
-                ].map((member, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-4 bg-background/50 border border-border/30 rounded-xl hover:border-accent/30 hover:bg-accent/5 transition-all group">
-                    <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-accent/20 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <div className="relative w-10 h-10 bg-gradient-to-br from-accent/20 to-accent/5 rounded-full flex items-center justify-center border border-accent/30">
-                          <span className="text-accent font-bold">{member.name.charAt(0)}</span>
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-white font-medium">{member.name}</p>
-                        <p className="text-muted-foreground text-xs font-mono">{member.id}</p>
+                {/* Leader */}
+                <div className="flex items-center justify-between p-4 bg-background/50 border border-border/30 rounded-xl hover:border-accent/30 hover:bg-accent/5 transition-all group">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-accent/20 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      <div className="relative w-10 h-10 bg-gradient-to-br from-accent/20 to-accent/5 rounded-full flex items-center justify-center border border-accent/30">
+                        <span className="text-accent font-bold">{displayData.leader_name?.charAt(0) || 'T'}</span>
                       </div>
                     </div>
-                    <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${
-                      member.role === 'Team Leader' 
-                        ? 'bg-accent/20 text-accent border border-accent/30' 
-                        : 'bg-background/50 text-muted-foreground border border-border/50'
-                    }`}>
-                      {member.role}
-                    </span>
+                    <div>
+                      <p className="text-white font-medium">{displayData.leader_name}</p>
+                      <p className="text-muted-foreground text-xs">{displayData.leader_email}</p>
+                    </div>
                   </div>
-                ))}
+                  <span className="text-xs px-3 py-1.5 rounded-full font-medium bg-accent/20 text-accent border border-accent/30">
+                    Team Leader
+                  </span>
+                </div>
+
+                {/* Members */}
+                {teamData?.members && teamData.members.length > 0 ? (
+                  teamData.members.map((member, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-4 bg-background/50 border border-border/30 rounded-xl hover:border-accent/30 hover:bg-accent/5 transition-all group">
+                      <div className="flex items-center gap-3">
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-accent/20 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                          <div className="relative w-10 h-10 bg-gradient-to-br from-accent/20 to-accent/5 rounded-full flex items-center justify-center border border-accent/30">
+                            <span className="text-accent font-bold">{member.name?.charAt(0) || 'M'}</span>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-white font-medium">{member.name}</p>
+                          <p className="text-muted-foreground text-xs font-mono">{member.studentId || 'No Student ID'}</p>
+                        </div>
+                      </div>
+                      <span className="text-xs px-3 py-1.5 rounded-full font-medium bg-background/50 text-muted-foreground border border-border/50">
+                        Member
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground text-sm">
+                    <Users className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p>No additional team members</p>
+                    <p className="text-xs">You are participating solo</p>
+                  </div>
+                )}
               </div>
             </Card>
 

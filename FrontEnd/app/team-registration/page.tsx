@@ -2,7 +2,7 @@
 
 import React from "react"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -10,8 +10,10 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Plus, Trash2, CheckCircle, Users, User, Sparkles, Rocket, Wallet } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, CheckCircle, Users, User, Sparkles, Rocket, Wallet, AlertCircle, LogOut } from 'lucide-react';
 import { ScrollToTop } from '@/components/scroll-to-top';
+import { useAuth } from '@/contexts/auth-context';
+import { createClient } from '@/lib/supabase/client';
 
 interface TeamMember {
   id: string;
@@ -20,12 +22,15 @@ interface TeamMember {
 }
 
 export default function TeamRegistrationPage() {
+  const { user, profile, isLoading: authLoading, signOut, refreshProfile } = useAuth();
+  const router = useRouter();
+  const supabase = createClient();
+  
   const [step, setStep] = useState<'form' | 'success'>('form');
-  const [teamId] = useState(`TEAM-${Math.random().toString(36).substr(2, 9).toUpperCase()}`);
   const [formData, setFormData] = useState({
     teamName: '',
     leaderName: '',
-    leaderEmail: 'user@gmail.com', // Would be auto-filled from Google auth
+    leaderEmail: '',
     phone: '',
     universityId: '',
     department: '',
@@ -33,7 +38,33 @@ export default function TeamRegistrationPage() {
   });
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Auth state:', { authLoading, user: user?.email, profile, isRegistered: profile?.is_registered });
+  }, [authLoading, user, profile]);
+
+  // Redirect if already registered or not logged in
+  useEffect(() => {
+    if (!authLoading) {
+      console.log('Auth loaded, checking redirect...', { user: !!user, isRegistered: profile?.is_registered });
+      if (!user) {
+        console.log('No user, redirecting to login...');
+        router.push('/login');
+      } else if (profile?.is_registered) {
+        console.log('Already registered, redirecting to dashboard...');
+        router.push('/team-dashboard');
+      } else if (user.email) {
+        console.log('User logged in, filling form...');
+        setFormData(prev => ({
+          ...prev,
+          leaderEmail: user.email || '',
+          leaderName: user.user_metadata?.full_name || '',
+        }));
+      }
+    }
+  }, [user, profile, authLoading, router]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -59,15 +90,86 @@ export default function TeamRegistrationPage() {
     setTeamMembers(prev => prev.filter(m => m.id !== id));
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/login');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Mock submission
-    setTimeout(() => {
-      setStep('success');
+    setError(null);
+
+    console.log('Starting registration...', { user, formData });
+
+    if (!user) {
+      setError('You must be logged in to register a team.');
       setIsLoading(false);
-    }, 1000);
+      return;
+    }
+
+    try {
+      console.log('Creating team...');
+      // Create team in database
+      const { data: team, error: teamError } = await supabase
+        .from('teams')
+        .insert({
+          name: formData.teamName,
+          leader_id: user.id,
+          leader_name: formData.leaderName,
+          leader_email: formData.leaderEmail,
+          leader_phone: formData.phone,
+          department: formData.department,
+          transaction_id: formData.transactionId,
+          members: teamMembers.filter(m => m.name.trim() !== ''),
+        })
+        .select()
+        .single();
+
+      console.log('Team creation result:', { team, teamError });
+
+      if (teamError) {
+        throw teamError;
+      }
+
+      console.log('Updating profile...');
+      // Update user profile to mark as registered
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          is_registered: true,
+          team_id: team.id,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      console.log('Profile update result:', { profileError });
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      // Refresh profile data
+      await refreshProfile();
+      
+      console.log('Registration complete!');
+      setStep('success');
+    } catch (err: any) {
+      console.error('Registration error:', err);
+      setError(err.message || err.code || 'Failed to register team. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   if (step === 'success') {
     return (
@@ -171,6 +273,35 @@ export default function TeamRegistrationPage() {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="relative space-y-8">
+              {/* Logged in as indicator */}
+              <div className="flex items-center justify-between p-3 bg-background/30 rounded-lg border border-border/30">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-accent/20 rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4 text-accent" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-white">Logged in as</p>
+                    <p className="text-xs text-muted-foreground">{formData.leaderEmail}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-accent transition-colors"
+                >
+                  <LogOut className="w-3 h-3" />
+                  Sign out
+                </button>
+              </div>
+
+              {/* Error Message */}
+              {error && (
+                <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  {error}
+                </div>
+              )}
+
               {/* Team Information */}
               <div className="space-y-4">
                 <div className="flex items-center gap-3 border-b border-border/50 pb-3">
