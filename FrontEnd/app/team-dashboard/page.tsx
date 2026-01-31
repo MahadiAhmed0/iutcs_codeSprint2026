@@ -4,22 +4,17 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { LogOut, Send, Settings, Users, FileText, CheckCircle, Clock, Sparkles, ArrowRight, Copy } from 'lucide-react';
+import { LogOut, Send, Settings, Users, FileText, CheckCircle, Clock, Sparkles, ArrowRight } from 'lucide-react';
 import { ScrollToTop } from '@/components/scroll-to-top';
 
 export default function TeamDashboard() {
   const teamData = {
-    teamId: 'TEAM-ABC123DEF',
     teamName: 'Code Warriors',
     leaderName: 'John Doe',
     email: 'john@gmail.com',
     memberCount: 3,
     submissionStatus: 'pending', // pending, submitted, approved, rejected
     submissionDate: null
-  };
-
-  const copyTeamId = () => {
-    navigator.clipboard.writeText(teamData.teamId);
   };
 
   return (
@@ -81,22 +76,7 @@ export default function TeamDashboard() {
         {/* Team Info Card */}
         <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-8 shadow-xl shadow-accent/5 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-primary/5 pointer-events-none"></div>
-          <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="space-y-2">
-              <p className="text-muted-foreground text-sm">Team ID</p>
-              <div className="flex items-center gap-2">
-                <p className="text-xl font-bold text-accent font-mono">{teamData.teamId}</p>
-                <button 
-                  onClick={copyTeamId}
-                  className="p-1.5 hover:bg-accent/10 rounded-lg transition-colors"
-                  title="Copy Team ID"
-                >
-                  <Copy className="w-4 h-4 text-muted-foreground hover:text-accent" />
-                </button>
-              </div>
-              <p className="text-xs text-muted-foreground">Save this for reference</p>
-            </div>
-            
+          <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
               <p className="text-muted-foreground text-sm">Team Name</p>
               <p className="text-xl font-bold text-white">{teamData.teamName}</p>

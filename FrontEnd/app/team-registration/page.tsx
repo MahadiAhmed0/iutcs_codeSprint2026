@@ -99,12 +99,6 @@ export default function TeamRegistrationPage() {
               <p className="text-muted-foreground">Your team has been successfully registered</p>
             </div>
 
-            <div className="relative bg-background/50 border border-green-500/30 rounded-xl p-6 space-y-2 backdrop-blur-sm">
-              <p className="text-sm text-muted-foreground">Your Team ID:</p>
-              <p className="text-2xl font-bold text-green-400 font-mono tracking-wider">{teamId}</p>
-              <p className="text-xs text-muted-foreground mt-2">Save this ID - you'll need it for submissions</p>
-            </div>
-
             <div className="relative space-y-3 pt-4">
               <Link href="/team-dashboard" className="w-full block">
                 <Button className="w-full bg-accent hover:bg-accent/90 text-white h-12 shadow-lg shadow-accent/25 hover:shadow-accent/40 hover:scale-[1.02] active:scale-[0.98] transition-all">
