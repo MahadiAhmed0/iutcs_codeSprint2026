@@ -87,11 +87,6 @@ export default function SubmissionPage() {
                 <p className="text-muted-foreground">Your project has been submitted for review</p>
               </div>
 
-              <div className="relative bg-background/50 border border-green-500/30 rounded-xl p-4 space-y-2 backdrop-blur-sm">
-                <p className="text-sm text-muted-foreground">Submission ID:</p>
-                <p className="text-lg font-bold text-green-400 font-mono tracking-wider">SUB-{Math.random().toString(36).substr(2, 9).toUpperCase()}</p>
-              </div>
-
               <div className="relative bg-accent/5 border border-accent/30 rounded-xl p-5 text-left space-y-3">
                 <p className="text-sm text-white font-semibold flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-accent" />

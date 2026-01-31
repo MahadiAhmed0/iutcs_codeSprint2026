@@ -1,13 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { LogOut, Search, Eye, Check, X, Filter, ChevronDown, Users, FileText, CheckCircle, Shield, Sparkles } from 'lucide-react';
 import { ScrollToTop } from '@/components/scroll-to-top';
+import { useAuth } from '@/contexts/auth-context';
+import { createClient } from '@/lib/supabase/client';
 
 type Tab = 'teams' | 'submissions' | 'verification';
 type VerificationStatus = 'pending' | 'approved' | 'rejected';
@@ -15,11 +18,13 @@ type VerificationStatus = 'pending' | 'approved' | 'rejected';
 interface Team {
   id: string;
   name: string;
-  leader: string;
-  members: number;
-  status: 'registered' | 'submitted' | 'approved';
-  email: string;
-  phone: string;
+  leader_name: string;
+  leader_email: string;
+  leader_phone: string;
+  department: string;
+  transaction_id: string;
+  members: Array<{ name: string; studentId: string }>;
+  created_at: string;
 }
 
 interface Submission {
@@ -40,38 +45,104 @@ interface VerificationData {
 }
 
 export default function AdminPanel() {
+  const { user, profile, isLoading: authLoading, signOut } = useAuth();
+  const router = useRouter();
+  const supabase = createClient();
+  
   const [activeTab, setActiveTab] = useState<Tab>('teams');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | string>('all');
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Mock Data
-  const teams: Team[] = [
-    { id: '1', name: 'Code Warriors', leader: 'John Doe', members: 3, status: 'submitted', email: 'john@gmail.com', phone: '+1234567890' },
-    { id: '2', name: 'Tech Titans', leader: 'Sarah Smith', members: 4, status: 'registered', email: 'sarah@gmail.com', phone: '+1234567891' },
-    { id: '3', name: 'Innovation Hub', leader: 'Mike Johnson', members: 3, status: 'approved', email: 'mike@gmail.com', phone: '+1234567892' },
-    { id: '4', name: 'Debug Legends', leader: 'Emily Davis', members: 3, status: 'submitted', email: 'emily@gmail.com', phone: '+1234567893' },
-    { id: '5', name: 'Pixel Masters', leader: 'Alex Chen', members: 2, status: 'registered', email: 'alex@gmail.com', phone: '+1234567894' },
-  ];
+  // Check admin access - wait for auth to load, then check
+  useEffect(() => {
+    if (!authLoading) {
+      if (!user) {
+        router.push('/login');
+      } else if (profile && profile.role !== 'admin') {
+        // Only redirect if we have a profile and it's not admin
+        router.push('/team-dashboard');
+      } else if (!profile) {
+        // No profile yet - might be a new user, wait a bit then redirect
+        const timer = setTimeout(() => {
+          router.push('/login');
+        }, 2000);
+        return () => clearTimeout(timer);
+      } else {
+        // User is admin, stop loading
+        setIsLoading(false);
+      }
+    }
+  }, [user, profile, authLoading, router]);
 
+  // Fetch teams data
+  useEffect(() => {
+    const fetchTeams = async () => {
+      if (profile?.role === 'admin') {
+        const { data, error } = await supabase
+          .from('teams')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        console.log('Fetched teams:', { data, error });
+
+        if (data && !error) {
+          setTeams(data);
+        } else if (error) {
+          console.error('Error fetching teams:', error);
+        }
+      }
+    };
+
+    if (!authLoading && profile?.role === 'admin') {
+      fetchTeams();
+    }
+  }, [profile, authLoading, supabase]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/');
+  };
+
+  // Loading state
+  if (authLoading || isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  // Not admin check
+  if (!profile || profile.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-white text-lg">Access Denied</p>
+          <p className="text-muted-foreground">You need admin privileges to view this page.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Mock submissions data (would be fetched from Supabase in production)
   const submissions: Submission[] = [
     { id: '1', teamId: 'TEAM-ABC', teamName: 'Code Warriors', gitHubLink: 'github.com/code-warriors/project', submittedAt: 'Feb 15, 2026', status: 'pending' },
-    { id: '2', teamId: 'TEAM-DEF', teamName: 'Tech Titans', gitHubLink: 'github.com/tech-titans/solution', submittedAt: 'Feb 10, 2026', status: 'pending' },
-    { id: '3', teamId: 'TEAM-GHI', teamName: 'Innovation Hub', gitHubLink: 'github.com/innovation/app', submittedAt: 'Feb 20, 2026', status: 'approved' },
-    { id: '4', teamId: 'TEAM-JKL', teamName: 'Debug Legends', gitHubLink: 'github.com/debug/tool', submittedAt: 'Feb 18, 2026', status: 'pending' },
   ];
 
-  const verification: VerificationData[] = [
-    { id: '1', teamId: 'TEAM-ABC', teamName: 'Code Warriors', status: 'pending', submittedAt: 'Feb 15, 2026' },
-    { id: '2', teamId: 'TEAM-GHI', teamName: 'Innovation Hub', status: 'approved', submittedAt: 'Feb 20, 2026' },
-    { id: '3', teamId: 'TEAM-JKL', teamName: 'Debug Legends', status: 'pending', submittedAt: 'Feb 18, 2026' },
-    { id: '4', teamId: 'TEAM-MNO', teamName: 'Pixel Masters', status: 'rejected', submittedAt: 'Feb 22, 2026' },
-  ];
+  const verification: VerificationData[] = teams.map(team => ({
+    id: team.id,
+    teamId: team.id,
+    teamName: team.name,
+    status: 'pending' as VerificationStatus,
+    submittedAt: new Date(team.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+  }));
 
   const filteredTeams = teams.filter(team => {
     const matchesSearch = team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         team.leader.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || team.status === filterStatus;
-    return matchesSearch && matchesStatus;
+                         team.leader_name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch;
   });
 
   const filteredSubmissions = submissions.filter(sub => {
@@ -121,12 +192,15 @@ export default function AdminPanel() {
             </div>
           </div>
           
-          <Link href="/">
-            <Button variant="outline" size="sm" className="border-border/50 text-white hover:bg-accent/10 hover:border-accent/30 gap-2 bg-transparent transition-all">
-              <LogOut className="w-4 h-4" />
-              Logout
-            </Button>
-          </Link>
+          <Button 
+            onClick={handleSignOut}
+            variant="outline" 
+            size="sm" 
+            className="border-border/50 text-white hover:bg-accent/10 hover:border-accent/30 gap-2 bg-transparent transition-all"
+          >
+            <LogOut className="w-4 h-4" />
+            Logout
+          </Button>
         </div>
       </nav>
 
@@ -276,15 +350,15 @@ export default function AdminPanel() {
                     {filteredTeams.map(team => (
                       <tr key={team.id} className="hover:bg-accent/5 transition-colors">
                         <td className="px-6 py-4 text-white font-medium">{team.name}</td>
-                        <td className="px-6 py-4 text-muted-foreground">{team.leader}</td>
-                        <td className="px-6 py-4 text-white">{team.members}</td>
+                        <td className="px-6 py-4 text-muted-foreground">{team.leader_name}</td>
+                        <td className="px-6 py-4 text-white">{(team.members?.length || 0) + 1}</td>
                         <td className="px-6 py-4">
                           <span className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${
-                            team.status === 'registered' ? 'bg-blue-500/10 text-blue-300 border-blue-500/30' :
-                            team.status === 'submitted' ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' :
+                            team.submission_status === 'pending' ? 'bg-blue-500/10 text-blue-300 border-blue-500/30' :
+                            team.submission_status === 'submitted' ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' :
                             'bg-green-500/10 text-green-300 border-green-500/30'
                           }`}>
-                            {team.status.charAt(0).toUpperCase() + team.status.slice(1)}
+                            {(team.submission_status || 'pending').charAt(0).toUpperCase() + (team.submission_status || 'pending').slice(1)}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
