@@ -19,6 +19,7 @@ interface TeamData {
   leader_phone: string;
   department: string;
   transaction_id: string;
+  payment_verified: boolean;
   members: Array<{ name: string; studentId: string }>;
   submission_status: string;
   submission_date: string | null;
@@ -76,6 +77,7 @@ export default function TeamDashboard() {
     leader_name: user?.user_metadata?.full_name || 'Team Leader',
     leader_email: user?.email || '',
     members: [],
+    payment_verified: false,
     submission_status: 'pending',
     submission_date: null,
   };
@@ -173,6 +175,40 @@ export default function TeamDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Quick Actions */}
           <div className="lg:col-span-1 space-y-4">
+            {/* Payment Verification Status */}
+            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-6 space-y-4 shadow-lg">
+              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center border border-accent/20">
+                  <CheckCircle className="w-4 h-4 text-accent" />
+                </div>
+                Payment Status
+              </h2>
+              
+              {displayData.payment_verified ? (
+                <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
+                  <p className="text-sm text-green-200 font-semibold flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4" />
+                    Payment Verified
+                  </p>
+                  <p className="text-xs text-green-200/70 mt-1">Your registration is confirmed</p>
+                </div>
+              ) : (
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
+                  <p className="text-sm text-amber-200 font-semibold flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Payment Unverified
+                  </p>
+                  <p className="text-xs text-amber-200/70 mt-1">Waiting for admin verification</p>
+                </div>
+              )}
+              
+              {teamData?.transaction_id && (
+                <div className="text-xs text-muted-foreground">
+                  <span className="text-white/70">Transaction ID:</span> {teamData.transaction_id}
+                </div>
+              )}
+            </Card>
+
             {/* Submission Status */}
             <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-6 space-y-4 shadow-lg">
               <h2 className="text-lg font-semibold text-white flex items-center gap-2">
@@ -224,18 +260,38 @@ export default function TeamDashboard() {
               </div>
             </Card>
 
-            {/* Important Links */}
-            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-6 space-y-3 shadow-lg">
-              <h3 className="font-semibold text-white mb-3">Quick Links</h3>
-              {['Rules & Guidelines', 'FAQ', 'Contact Support'].map((item) => (
-                <button 
-                  key={item}
-                  className="w-full text-left px-4 py-3 rounded-xl hover:bg-accent/10 text-white text-sm transition-all flex items-center justify-between group border border-transparent hover:border-accent/20"
-                >
-                  {item}
-                  <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-accent group-hover:translate-x-1 transition-all" />
-                </button>
-              ))}
+            {/* Problem Statement */}
+            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-6 space-y-4 shadow-lg">
+              <h3 className="font-semibold text-white flex items-center gap-2">
+                <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center border border-accent/20">
+                  <FileText className="w-4 h-4 text-accent" />
+                </div>
+                Problem Statement
+              </h3>
+              
+              {new Date() >= new Date('2026-02-14') ? (
+                <div className="space-y-4">
+                  <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
+                    <p className="text-sm text-green-200 font-semibold flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4" />
+                      Problem Statement Released!
+                    </p>
+                  </div>
+                  <Button className="w-full bg-accent hover:bg-accent/90 text-white gap-2 shadow-lg shadow-accent/25 hover:shadow-accent/40 hover:scale-[1.02] active:scale-[0.98] transition-all h-12">
+                    <FileText className="w-4 h-4" />
+                    View Problem Statement
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="bg-accent/5 border border-accent/30 rounded-xl p-4 text-center">
+                    <Clock className="w-8 h-8 text-accent mx-auto mb-2" />
+                    <p className="text-sm text-white font-semibold">Coming Soon!</p>
+                    <p className="text-xs text-muted-foreground mt-1">Problem statement will be released on</p>
+                    <p className="text-accent font-bold mt-2">February 14, 2026</p>
+                  </div>
+                </div>
+              )}
             </Card>
           </div>
 

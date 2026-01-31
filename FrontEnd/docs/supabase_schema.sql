@@ -35,6 +35,7 @@ CREATE TABLE public.teams (
   leader_phone TEXT NOT NULL,
   department TEXT NOT NULL,
   transaction_id TEXT NOT NULL,
+  payment_verified BOOLEAN DEFAULT false,
   members JSONB DEFAULT '[]',
   submission_status TEXT DEFAULT 'pending' CHECK (submission_status IN ('pending', 'submitted', 'approved', 'rejected')),
   submission_date TIMESTAMPTZ,

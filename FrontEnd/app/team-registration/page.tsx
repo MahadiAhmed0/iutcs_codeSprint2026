@@ -121,6 +121,7 @@ export default function TeamRegistrationPage() {
           leader_phone: formData.phone,
           department: formData.department,
           transaction_id: formData.transactionId,
+          payment_verified: false,
           members: teamMembers.filter(m => m.name.trim() !== ''),
         })
         .select()
