@@ -26,7 +26,7 @@ interface Team {
   nationality: string;
   transaction_id: string;
   payment_verified: boolean;
-  members: Array<{ name: string; studentId: string }>;
+  members: Array<{ name: string; studentId: string; phone?: string; nationality?: string; email?: string }>;
   submission_status: string;
   created_at: string;
 }
@@ -73,6 +73,9 @@ export default function AdminPanel() {
     teamName: string | null;
   }>({ isOpen: false, action: null, teamId: null, teamName: null });
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Selected team for viewing details
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
 
   // Check admin access - wait for auth to load, then check
   useEffect(() => {
@@ -188,7 +191,10 @@ export default function AdminPanel() {
     submittedAt: new Date(team.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
   }));
 
-  const filteredTeams = teams.filter(team => {
+  // Only show payment verified teams
+  const verifiedTeams = teams.filter(team => team.payment_verified);
+  
+  const filteredTeams = verifiedTeams.filter(team => {
     const matchesSearch = team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          team.leader_name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
@@ -210,7 +216,7 @@ export default function AdminPanel() {
   });
 
   const stats = {
-    totalTeams: teams.length,
+    totalTeams: verifiedTeams.length,
     totalSubmissions: submissions.length,
     pendingVerifications: teams.filter(t => !t.payment_verified).length,
   };
@@ -513,7 +519,16 @@ export default function AdminPanel() {
 
           {/* Teams Tab */}
           {activeTab === 'teams' && (
-            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 overflow-hidden shadow-lg">
+            <div className="space-y-4">
+              {/* Info Banner */}
+              <div className="bg-accent/10 border border-accent/30 rounded-lg px-4 py-3 flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-accent flex-shrink-0" />
+                <p className="text-sm text-accent">
+                  Only payment verified teams are shown here. Teams pending verification can be found in the Verification tab.
+                </p>
+              </div>
+              
+              <Card className="bg-card/80 backdrop-blur-xl border border-border/50 overflow-hidden shadow-lg">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-background/50 border-b border-border/50">
@@ -541,17 +556,156 @@ export default function AdminPanel() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <Button size="sm" variant="outline" className="border-accent/30 text-accent hover:bg-accent/10 hover:border-accent/50 gap-1 bg-transparent transition-all">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="border-accent/30 text-accent hover:bg-accent/10 hover:border-accent/50 gap-1 bg-transparent transition-all"
+                            onClick={() => setSelectedTeam(team)}
+                          >
                             <Eye className="w-4 h-4" />
                             View
                           </Button>
                         </td>
                       </tr>
                     ))}
+                    {filteredTeams.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
+                          No verified teams found
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
             </Card>
+            </div>
+          )}
+
+          {/* Team Details Modal */}
+          {selectedTeam && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedTeam(null)}>
+              <Card className="bg-card/95 backdrop-blur-xl border border-border/50 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                <div className="p-6 border-b border-border/50 flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                    <Users className="w-5 h-5 text-accent" />
+                    Team Details
+                  </h2>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setSelectedTeam(null)}
+                    className="text-muted-foreground hover:text-white"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+                
+                <div className="p-6 space-y-6">
+                  {/* Team Name */}
+                  <div className="text-center pb-4 border-b border-border/30">
+                    <h3 className="text-2xl font-bold text-white">{selectedTeam.name}</h3>
+                    <span className="inline-block mt-2 px-3 py-1 bg-green-500/10 text-green-300 border border-green-500/30 rounded-full text-xs font-semibold">
+                      Payment Verified
+                    </span>
+                  </div>
+                  
+                  {/* Leader Info */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-accent uppercase tracking-wider">Team Leader</h4>
+                    <div className="bg-background/50 rounded-lg p-4 space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Name:</span>
+                        <span className="text-white font-medium">{selectedTeam.leader_name}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Email:</span>
+                        <span className="text-white font-medium">{selectedTeam.leader_email}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Phone:</span>
+                        <span className="text-white font-medium">{selectedTeam.leader_phone}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Student ID:</span>
+                        <span className="text-white font-medium">{selectedTeam.leader_student_id}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Department:</span>
+                        <span className="text-white font-medium">{selectedTeam.department}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Nationality:</span>
+                        <span className="text-white font-medium">{selectedTeam.nationality}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Team Members */}
+                  {selectedTeam.members && selectedTeam.members.length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-semibold text-accent uppercase tracking-wider">Team Members ({selectedTeam.members.length})</h4>
+                      <div className="space-y-3">
+                        {selectedTeam.members.map((member, index) => (
+                          <div key={index} className="bg-background/50 rounded-lg p-4 space-y-2">
+                            <div className="flex justify-between items-center border-b border-border/30 pb-2 mb-2">
+                              <p className="text-white font-medium">{member.name}</p>
+                              <span className="text-xs text-muted-foreground bg-background/50 px-2 py-1 rounded">Member {index + 1}</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Student ID:</span>
+                                <span className="text-white">{member.studentId}</span>
+                              </div>
+                              {member.phone && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Phone:</span>
+                                  <span className="text-white">{member.phone}</span>
+                                </div>
+                              )}
+                              {member.email && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Email:</span>
+                                  <span className="text-white">{member.email}</span>
+                                </div>
+                              )}
+                              {member.nationality && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Nationality:</span>
+                                  <span className="text-white">{member.nationality}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Payment Info */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-accent uppercase tracking-wider">Payment Information</h4>
+                    <div className="bg-background/50 rounded-lg p-4 space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Transaction ID:</span>
+                        <span className="text-white font-medium font-mono">{selectedTeam.transaction_id}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Status:</span>
+                        <span className="text-green-400 font-medium">Verified</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Registration Date */}
+                  <div className="text-center pt-4 border-t border-border/30">
+                    <p className="text-muted-foreground text-sm">
+                      Registered on {new Date(selectedTeam.created_at).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </div>
           )}
 
           {/* Submissions Tab */}
