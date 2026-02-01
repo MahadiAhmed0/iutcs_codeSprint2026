@@ -38,21 +38,45 @@ export default function TeamDashboard() {
 
   useEffect(() => {
     const fetchTeamData = async () => {
-      if (!authLoading && user && profile?.team_id) {
-        const { data, error } = await supabase
-          .from('teams')
-          .select('*')
-          .eq('id', profile.team_id)
-          .single();
+      if (!authLoading && user) {
+        // Try to get team by profile.team_id first, then fallback to leader_id
+        let teamFound = false;
+        
+        if (profile?.team_id) {
+          const { data, error } = await supabase
+            .from('teams')
+            .select('*')
+            .eq('id', profile.team_id)
+            .single();
 
-        if (data && !error) {
-          setTeamData(data);
+          if (data && !error) {
+            setTeamData(data);
+            teamFound = true;
+          }
         }
+        
+        // Fallback: check if user is a team leader
+        if (!teamFound) {
+          const { data, error } = await supabase
+            .from('teams')
+            .select('*')
+            .eq('leader_id', user.id)
+            .single();
+
+          if (data && !error) {
+            setTeamData(data);
+            teamFound = true;
+          }
+        }
+        
+        // If no team found, redirect to registration
+        if (!teamFound && !profile?.is_registered) {
+          router.push('/team-registration');
+        }
+        
         setIsLoading(false);
       } else if (!authLoading && !user) {
         router.push('/login');
-      } else if (!authLoading && user && !profile?.is_registered) {
-        router.push('/team-registration');
       }
     };
 
@@ -134,7 +158,6 @@ export default function TeamDashboard() {
         {/* Header Section */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-accent" />
             <span className="text-accent font-medium">Dashboard</span>
           </div>
           <h1 className="text-4xl font-bold">
@@ -211,6 +234,40 @@ export default function TeamDashboard() {
               )}
             </Card>
 
+            {/* Problem Statement */}
+            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-6 space-y-4 shadow-lg">
+              <h3 className="font-semibold text-white flex items-center gap-2">
+                <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center border border-accent/20">
+                  <FileText className="w-4 h-4 text-accent" />
+                </div>
+                Problem Statement
+              </h3>
+              
+              {new Date() >= new Date('2026-02-14') ? (
+                <div className="space-y-4">
+                  <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
+                    <p className="text-sm text-green-200 font-semibold flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4" />
+                      Problem Statement Released!
+                    </p>
+                  </div>
+                  <Button className="w-full bg-accent hover:bg-accent/90 text-white gap-2 shadow-lg shadow-accent/25 hover:shadow-accent/40 hover:scale-[1.02] active:scale-[0.98] transition-all h-12">
+                    <FileText className="w-4 h-4" />
+                    View Problem Statement
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="bg-accent/5 border border-accent/30 rounded-xl p-4 text-center">
+                    <Clock className="w-8 h-8 text-accent mx-auto mb-2" />
+                    <p className="text-sm text-white font-semibold">Coming Soon!</p>
+                    <p className="text-xs text-muted-foreground mt-1">Problem statement will be released on</p>
+                    <p className="text-accent font-bold mt-2">February 14, 2026</p>
+                  </div>
+                </div>
+              )}
+            </Card>
+
             {/* Submission Status */}
             <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-6 space-y-4 shadow-lg">
               <h2 className="text-lg font-semibold text-white flex items-center gap-2">
@@ -245,9 +302,11 @@ export default function TeamDashboard() {
                       </p>
                       <p className="text-xs text-blue-200/70">{displayData.submission_date}</p>
                     </div>
-                    <Button variant="outline" className="w-full border-border/50 text-white hover:bg-accent/10 hover:border-accent/30 bg-transparent transition-all">
-                      View Submission
-                    </Button>
+                    <Link href="/submission" className="w-full block">
+                      <Button variant="outline" className="w-full border-border/50 text-white hover:bg-accent/10 hover:border-accent/30 bg-transparent transition-all">
+                        View Submission
+                      </Button>
+                    </Link>
                   </>
                 ) : (
                   <>
@@ -260,40 +319,6 @@ export default function TeamDashboard() {
                   </>
                 )}
               </div>
-            </Card>
-
-            {/* Problem Statement */}
-            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-6 space-y-4 shadow-lg">
-              <h3 className="font-semibold text-white flex items-center gap-2">
-                <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center border border-accent/20">
-                  <FileText className="w-4 h-4 text-accent" />
-                </div>
-                Problem Statement
-              </h3>
-              
-              {new Date() >= new Date('2026-02-14') ? (
-                <div className="space-y-4">
-                  <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
-                    <p className="text-sm text-green-200 font-semibold flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4" />
-                      Problem Statement Released!
-                    </p>
-                  </div>
-                  <Button className="w-full bg-accent hover:bg-accent/90 text-white gap-2 shadow-lg shadow-accent/25 hover:shadow-accent/40 hover:scale-[1.02] active:scale-[0.98] transition-all h-12">
-                    <FileText className="w-4 h-4" />
-                    View Problem Statement
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="bg-accent/5 border border-accent/30 rounded-xl p-4 text-center">
-                    <Clock className="w-8 h-8 text-accent mx-auto mb-2" />
-                    <p className="text-sm text-white font-semibold">Coming Soon!</p>
-                    <p className="text-xs text-muted-foreground mt-1">Problem statement will be released on</p>
-                    <p className="text-accent font-bold mt-2">February 14, 2026</p>
-                  </div>
-                </div>
-              )}
             </Card>
           </div>
 

@@ -48,14 +48,30 @@ CREATE TABLE public.teams (
 -- Submissions table
 CREATE TABLE public.submissions (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  team_id UUID REFERENCES public.teams(id) ON DELETE CASCADE,
+  team_id UUID REFERENCES public.teams(id) ON DELETE CASCADE UNIQUE,
+  requirement_analysis_link TEXT NOT NULL,
+  stack_report_link TEXT NOT NULL,
+  dependencies_docs_link TEXT NOT NULL,
   github_link TEXT NOT NULL,
-  description TEXT,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
   submitted_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
   reviewed_at TIMESTAMPTZ,
   reviewer_id UUID REFERENCES auth.users(id)
 );
+
+-- Submission settings table (to control submission deadline)
+CREATE TABLE public.submission_settings (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  is_submission_open BOOLEAN DEFAULT true,
+  deadline TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_by UUID REFERENCES auth.users(id)
+);
+
+-- Insert default submission settings
+INSERT INTO public.submission_settings (is_submission_open, deadline)
+VALUES (true, '2026-02-28 23:59:59+06');
 
 -- Add foreign key for team_id in profiles
 ALTER TABLE public.profiles
@@ -70,13 +86,24 @@ CREATE INDEX idx_profiles_email ON public.profiles(email);
 CREATE INDEX idx_teams_leader_id ON public.teams(leader_id);
 CREATE INDEX idx_submissions_team_id ON public.submissions(team_id);
 
--- Step 4: Enable RLS
+-- Step 4: Create helper function to check admin status (avoids infinite recursion)
+-- ============================================
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid() AND role = 'admin'
+  );
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
+
+-- Step 5: Enable RLS
 -- ============================================
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.teams ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.submissions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.submission_settings ENABLE ROW LEVEL SECURITY;
 
--- Step 5: Create RLS Policies
+-- Step 6: Create RLS Policies
 -- ============================================
 
 -- PROFILES POLICIES
@@ -99,16 +126,11 @@ CREATE POLICY "profiles_update_own"
   USING (auth.uid() = id)
   WITH CHECK (auth.uid() = id);
 
--- Allow admins to view all profiles
+-- Allow admins to view all profiles (using helper function to avoid recursion)
 CREATE POLICY "profiles_select_admin"
   ON public.profiles FOR SELECT
   TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
-    )
-  );
+  USING (public.is_admin());
 
 -- TEAMS POLICIES
 -- Allow users to view their own team
@@ -134,23 +156,13 @@ CREATE POLICY "teams_update_own"
 CREATE POLICY "teams_select_admin"
   ON public.teams FOR SELECT
   TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
-    )
-  );
+  USING (public.is_admin());
 
 -- Allow admins to update all teams
 CREATE POLICY "teams_update_admin"
   ON public.teams FOR UPDATE
   TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
-    )
-  );
+  USING (public.is_admin());
 
 -- SUBMISSIONS POLICIES
 -- Allow team leaders to manage their submissions
@@ -169,19 +181,29 @@ CREATE POLICY "submissions_all_leader"
 CREATE POLICY "submissions_all_admin"
   ON public.submissions FOR ALL
   TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
-    )
-  );
+  USING (public.is_admin());
 
--- Step 6: Grant permissions
+-- SUBMISSION SETTINGS POLICIES
+-- Allow all authenticated users to read submission settings
+CREATE POLICY "submission_settings_select_all"
+  ON public.submission_settings FOR SELECT
+  TO authenticated
+  USING (true);
+
+-- Allow admins to manage submission settings
+CREATE POLICY "submission_settings_all_admin"
+  ON public.submission_settings FOR ALL
+  TO authenticated
+  USING (public.is_admin());
+
+-- Step 7: Grant permissions
 -- ============================================
 GRANT USAGE ON SCHEMA public TO authenticated;
 GRANT ALL ON public.profiles TO authenticated;
 GRANT ALL ON public.teams TO authenticated;
 GRANT ALL ON public.submissions TO authenticated;
+GRANT ALL ON public.submission_settings TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
 
 -- ============================================
 -- DONE! Your database is ready.
