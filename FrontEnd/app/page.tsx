@@ -4,13 +4,56 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Zap, Users, Trophy, Code2, Sparkles, Calendar, Award, Rocket, GraduationCap, Clock, ChevronUp } from 'lucide-react';
+import { ArrowRight, Zap, Users, Trophy, Code2, Sparkles, Calendar, Award, Rocket, GraduationCap, Clock, ChevronUp, Star } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 export default function LandingPage() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [stats, setStats] = useState({ totalTeams: 0, totalParticipants: 0 });
   const progressCircleRef = useRef<SVGCircleElement>(null);
   const circumference = 2 * Math.PI * 26;
+  const supabase = createClient();
+
+  // Fetch actual stats from database
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // Fetch verified teams count using count
+        const { count: teamCount, error: countError } = await supabase
+          .from('teams')
+          .select('*', { count: 'exact', head: true })
+          .eq('payment_verified', true);
+
+        // Fetch verified teams with members for participant count
+        const { data: teams, error } = await supabase
+          .from('teams')
+          .select('id, members')
+          .eq('payment_verified', true);
+
+        console.log('Fetched teams for stats:', { teamCount, teams, error, countError });
+
+        const totalTeams = teamCount || teams?.length || 0;
+        
+        // Calculate total participants: leader (1) + members for each team
+        let totalParticipants = 0;
+        if (teams && !error) {
+          totalParticipants = teams.reduce((acc, team) => {
+            const membersArray = team.members as Array<any> | null;
+            const membersCount = Array.isArray(membersArray) ? membersArray.length : 0;
+            return acc + 1 + membersCount; // 1 leader + members
+          }, 0);
+        }
+        
+        console.log('Stats calculated:', { totalTeams, totalParticipants });
+        setStats({ totalTeams, totalParticipants });
+      } catch (err) {
+        console.error('Error fetching stats:', err);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   // Scroll to top handler
   const scrollToTop = () => {
@@ -271,20 +314,35 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
             {[
-              { label: 'Total Teams', value: '50+', icon: Users },
-              { label: 'Participants', value: '200+', icon: Code2 },
+              { label: 'Total Teams', value: stats.totalTeams || '0', icon: Users },
+              { label: 'Participants', value: stats.totalParticipants || '0', icon: Code2 },
               { label: 'Prize Pool', value: 'Exciting', icon: Trophy },
-              { label: 'Categories', value: '3+', icon: Award }
+              { label: '1st Year Prize', value: 'Guaranteed', icon: Star, highlight: true }
             ].map((stat, idx) => (
               <div 
                 key={idx} 
-                className="group bg-card/80 backdrop-blur-xl border border-border/50 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 text-center hover:border-accent/50 transition-all duration-300 hover:shadow-lg hover:shadow-accent/10"
+                className={`group bg-card/80 backdrop-blur-xl border rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 text-center transition-all duration-300 hover:shadow-lg ${
+                  stat.highlight 
+                    ? 'border-amber-500/50 hover:border-amber-500 hover:shadow-amber-500/20 bg-gradient-to-br from-amber-500/10 to-card/80' 
+                    : 'border-border/50 hover:border-accent/50 hover:shadow-accent/10'
+                }`}
               >
-                <div className="w-9 h-9 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-accent/10 rounded-lg sm:rounded-xl flex items-center justify-center mx-auto mb-2 sm:mb-4 group-hover:bg-accent/20 group-hover:scale-110 transition-all">
-                  <stat.icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-accent" />
+                <div className={`w-9 h-9 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-lg sm:rounded-xl flex items-center justify-center mx-auto mb-2 sm:mb-4 group-hover:scale-110 transition-all ${
+                  stat.highlight 
+                    ? 'bg-amber-500/20 group-hover:bg-amber-500/30' 
+                    : 'bg-accent/10 group-hover:bg-accent/20'
+                }`}>
+                  <stat.icon className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 ${stat.highlight ? 'text-amber-500' : 'text-accent'}`} />
                 </div>
-                <p className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent mb-1 sm:mb-2">{stat.value}</p>
+                <p className={`text-xl sm:text-3xl lg:text-4xl font-bold bg-clip-text text-transparent mb-1 sm:mb-2 ${
+                  stat.highlight 
+                    ? 'bg-gradient-to-r from-amber-400 to-orange-500' 
+                    : 'bg-gradient-to-r from-accent to-primary'
+                }`}>{stat.value}</p>
                 <p className="text-xs sm:text-sm lg:text-base text-muted-foreground">{stat.label}</p>
+                {stat.highlight && (
+                  <p className="text-[10px] sm:text-xs text-amber-400/80 mt-2">For best 1st year team outside top 3</p>
+                )}
               </div>
             ))}
           </div>

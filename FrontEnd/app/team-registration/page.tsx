@@ -646,37 +646,37 @@ export default function TeamRegistrationPage() {
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]"></div>
       </div>
 
-      <div className="relative py-8 px-4 sm:px-6 lg:px-8">
+      <div className="relative py-6 sm:py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mx-auto">
           <Link 
             href="/login"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors mb-8 group"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors mb-6 sm:mb-8 group text-sm sm:text-base"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             Back
           </Link>
 
-          <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-8 space-y-8 shadow-2xl shadow-accent/5 relative overflow-hidden">
+          <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-5 sm:p-8 space-y-6 sm:space-y-8 shadow-2xl shadow-accent/5 relative overflow-hidden">
             {/* Card glow effect */}
             <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-primary/5 pointer-events-none"></div>
             
             {/* Header */}
-            <div className="relative text-center space-y-4">
+            <div className="relative text-center space-y-3 sm:space-y-4">
               <div className="flex justify-center">
                 <div className="relative">
                   <div className="absolute inset-0 bg-accent/30 rounded-xl blur-lg animate-pulse"></div>
-                  <div className="relative w-16 h-16 bg-gradient-to-br from-accent/20 to-accent/5 rounded-xl flex items-center justify-center border border-accent/40 shadow-lg shadow-accent/20">
-                    <Users className="w-8 h-8 text-accent" />
+                  <div className="relative w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-accent/20 to-accent/5 rounded-xl flex items-center justify-center border border-accent/40 shadow-lg shadow-accent/20">
+                    <Users className="w-7 h-7 sm:w-8 sm:h-8 text-accent" />
                   </div>
                 </div>
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-white to-accent bg-clip-text text-transparent">Register Your Team</h1>
-                <p className="text-muted-foreground mt-2">Only team leaders can register a team</p>
+                <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-white via-white to-accent bg-clip-text text-transparent">Register Your Team</h1>
+                <p className="text-muted-foreground mt-2 text-sm sm:text-base">Only team leaders can register a team</p>
               </div>
               
               {/* Team type badges */}
-              <div className="flex justify-center gap-3 pt-2">
+              <div className="flex justify-center gap-2 sm:gap-3 pt-2">
                 {['Solo', 'Duo', 'Trio'].map((type) => (
                   <span 
                     key={type}
@@ -691,14 +691,14 @@ export default function TeamRegistrationPage() {
             {/* Form */}
             <form onSubmit={handleSubmit} className="relative space-y-8">
               {/* Logged in as indicator */}
-              <div className="flex items-center justify-between p-3 bg-background/30 rounded-lg border border-border/30">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-3 bg-background/30 rounded-lg border border-border/30">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 bg-accent/20 rounded-full flex items-center justify-center">
                     <User className="w-4 h-4 text-accent" />
                   </div>
                   <div>
                     <p className="text-sm text-white">Logged in as</p>
-                    <p className="text-xs text-muted-foreground">{formData.leaderEmail}</p>
+                    <p className="text-xs text-muted-foreground truncate max-w-[200px] sm:max-w-none">{formData.leaderEmail}</p>
                   </div>
                 </div>
                 <button
@@ -776,7 +776,7 @@ export default function TeamRegistrationPage() {
                   <p className="text-[11px] text-muted-foreground/70 mt-1.5 italic">From your Google account</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-white mb-2">Student ID *</label>
                     <Input
@@ -837,7 +837,7 @@ export default function TeamRegistrationPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-white mb-2">Phone (Bangladesh) *</label>
                     <Input
@@ -933,7 +933,7 @@ export default function TeamRegistrationPage() {
                         </div>
 
                         {/* Name and Student ID row */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <label className="block text-sm font-medium text-white">
                               Full Name *
@@ -967,7 +967,7 @@ export default function TeamRegistrationPage() {
                         </div>
                         
                         {/* Phone and Nationality row */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <label className="block text-sm font-medium text-white">
                               Phone (Bangladesh) *

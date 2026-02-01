@@ -433,7 +433,7 @@ export default function AdminPanel() {
       </nav>
 
       {/* Main Content */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
         {/* Header */}
         <div className="space-y-4">
           
@@ -442,7 +442,7 @@ export default function AdminPanel() {
               Admin Dashboard
             </span>
           </h1>
-          <p className="text-muted-foreground">Manage teams, submissions, and verify financial information</p>
+          <p className="text-muted-foreground text-sm sm:text-base">Manage teams, submissions, and verify financial information</p>
         </div>
 
         {/* Stats */}
@@ -576,8 +576,8 @@ export default function AdminPanel() {
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-border/50">
-          <div className="flex gap-1">
+        <div className="border-b border-border/50 overflow-x-auto">
+          <div className="flex gap-1 min-w-max">
             {(['teams', 'submissions', 'verification'] as const).map(tab => (
               <button
                 key={tab}
@@ -585,7 +585,7 @@ export default function AdminPanel() {
                   setActiveTab(tab);
                   setFilterStatus('all');
                 }}
-                className={`px-6 py-4 font-medium text-sm border-b-2 transition-all ${
+                className={`px-4 sm:px-6 py-3 sm:py-4 font-medium text-xs sm:text-sm border-b-2 transition-all whitespace-nowrap ${
                   activeTab === tab
                     ? 'border-accent text-accent bg-accent/5'
                     : 'border-transparent text-muted-foreground hover:text-white hover:bg-accent/5'
@@ -600,15 +600,15 @@ export default function AdminPanel() {
         {/* Content */}
         <div className="space-y-4">
           {/* Search and Filter */}
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
             <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder="Search by team name or leader..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-11 bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors"
+                className="pl-9 sm:pl-11 bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors text-sm sm:text-base"
               />
             </div>
             
@@ -658,24 +658,24 @@ export default function AdminPanel() {
               
               <Card className="bg-card/80 backdrop-blur-xl border border-border/50 overflow-hidden shadow-lg">
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[640px]">
                   <thead className="bg-background/50 border-b border-border/50">
                     <tr>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Team Name</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Leader</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Members</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Status</th>
-                      <th className="px-6 py-4 text-right text-sm font-semibold text-white">Action</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Team Name</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Leader</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Members</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Status</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-semibold text-white">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/30">
                     {filteredTeams.map(team => (
                       <tr key={team.id} className="hover:bg-accent/5 transition-colors">
-                        <td className="px-6 py-4 text-white font-medium">{team.name}</td>
-                        <td className="px-6 py-4 text-muted-foreground">{team.leader_name}</td>
-                        <td className="px-6 py-4 text-white">{(team.members?.length || 0) + 1}</td>
-                        <td className="px-6 py-4">
-                          <span className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-white font-medium text-sm">{team.name}</td>
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-muted-foreground text-sm">{team.leader_name}</td>
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-white text-sm">{(team.members?.length || 0) + 1}</td>
+                        <td className="px-3 sm:px-6 py-3 sm:py-4">
+                          <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold border ${
                             team.submission_status === 'pending' ? 'bg-blue-500/10 text-blue-300 border-blue-500/30' :
                             team.submission_status === 'submitted' ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' :
                             'bg-green-500/10 text-green-300 border-green-500/30'
@@ -1014,7 +1014,7 @@ export default function AdminPanel() {
           {activeTab === 'verification' && (
             <Card className="bg-card/80 backdrop-blur-xl border border-border/50 overflow-hidden shadow-lg">
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[480px]">
                   <thead className="bg-background/50 border-b border-border/50">
                     <tr>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-white">Team Name</th>

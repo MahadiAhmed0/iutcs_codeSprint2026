@@ -63,39 +63,39 @@ export default function LoginPage() {
       </div>
 
       {/* Content */}
-      <div className="relative w-full max-w-md mx-auto px-4 py-8">
+      <div className="relative w-full max-w-md mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Header */}
         <Link 
           href="/"
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors mb-8 group"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors mb-6 sm:mb-8 group text-sm sm:text-base"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           Back to Home
         </Link>
 
         {/* Main Card */}
-        <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-8 space-y-8 shadow-2xl shadow-accent/5 relative overflow-hidden">
+        <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-5 sm:p-8 space-y-6 sm:space-y-8 shadow-2xl shadow-accent/5 relative overflow-hidden">
           {/* Card glow effect */}
           <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-primary/5 pointer-events-none"></div>
           
           {/* Logo Section */}
-          <div className="relative text-center space-y-4">
+          <div className="relative text-center space-y-3 sm:space-y-4">
             <div className="flex justify-center">
               <div className="relative">
                 <div className="absolute inset-0 bg-accent/30 rounded-2xl blur-xl animate-pulse"></div>
-                <div className="relative w-20 h-20 bg-gradient-to-br from-accent/20 to-accent/5 rounded-2xl flex items-center justify-center border border-accent/40 shadow-lg shadow-accent/20">
+                <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-accent/20 to-accent/5 rounded-2xl flex items-center justify-center border border-accent/40 shadow-lg shadow-accent/20">
                   <Image 
                     src="/iutcs-logo.png" 
                     alt="IUTCS Logo" 
                     width={56} 
                     height={56}
-                    className="w-14 h-auto drop-shadow-lg"
+                    className="w-10 sm:w-14 h-auto drop-shadow-lg"
                   />
                 </div>
               </div>
             </div>
             <div className="space-y-1">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-white to-accent bg-clip-text text-transparent">
+              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-white via-white to-accent bg-clip-text text-transparent">
                 IUTCS
               </h1>
               <div className="flex items-center justify-center gap-2">
@@ -107,7 +107,7 @@ export default function LoginPage() {
           </div>
 
           {/* Features badges */}
-          <div className="relative flex justify-center gap-3">
+          <div className="relative flex flex-wrap justify-center gap-2 sm:gap-3">
             {[
               { icon: Code2, label: 'Code' },
               { icon: Users, label: 'Collaborate' },
@@ -115,7 +115,7 @@ export default function LoginPage() {
             ].map((item, idx) => (
               <div 
                 key={item.label}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-background/50 rounded-full border border-border/50 text-xs text-muted-foreground"
+                className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-background/50 rounded-full border border-border/50 text-[10px] sm:text-xs text-muted-foreground"
               >
                 <item.icon className="w-3 h-3 text-accent" />
                 {item.label}
@@ -132,16 +132,16 @@ export default function LoginPage() {
           )}
 
           {/* Form Section */}
-          <div className="relative space-y-4">
+          <div className="relative space-y-3 sm:space-y-4">
             <div className="text-center">
-              <h2 className="text-xl font-bold text-white mb-2">Welcome, Coder!</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-white mb-2">Welcome, Coder!</h2>
             </div>
 
             {/* Google Login Button */}
             <Button
               onClick={handleGoogleLogin}
               disabled={isLoading}
-              className="w-full bg-white hover:bg-white/90 text-black border-0 h-14 text-base font-semibold flex items-center justify-center gap-3 transition-all shadow-lg shadow-white/10 hover:shadow-white/20 hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full bg-white hover:bg-white/90 text-black border-0 h-12 sm:h-14 text-sm sm:text-base font-semibold flex items-center justify-center gap-2 sm:gap-3 transition-all shadow-lg shadow-white/10 hover:shadow-white/20 hover:scale-[1.02] active:scale-[0.98]"
             >
               {isLoading ? (
                 <>
@@ -165,13 +165,13 @@ export default function LoginPage() {
          
 
           {/* Info */}
-          <div className="relative text-center text-sm text-muted-foreground">
+          <div className="relative text-center text-xs sm:text-sm text-muted-foreground">
             <p>Sign in with your Google account to register your team or access your dashboard.</p>
           </div>
         </Card>
 
         {/* Footer */}
-        <div className="mt-8 text-center text-sm text-muted-foreground space-y-3">
+        <div className="mt-6 sm:mt-8 text-center text-xs sm:text-sm text-muted-foreground space-y-2 sm:space-y-3">
           <p className="text-xs">By signing in, you agree to our</p>
           <div className="flex items-center justify-center gap-3 text-xs">
             <a href="#" className="hover:text-accent transition-colors underline underline-offset-4 decoration-border hover:decoration-accent">Terms of Service</a>
