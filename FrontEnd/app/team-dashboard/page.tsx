@@ -137,9 +137,6 @@ export default function TeamDashboard() {
           </Link>
           
           <div className="flex items-center gap-4">
-            <button className="p-2 hover:bg-accent/10 rounded-lg transition-colors group">
-              <Settings className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />
-            </button>
             <Button 
               onClick={handleSignOut}
               variant="outline" 

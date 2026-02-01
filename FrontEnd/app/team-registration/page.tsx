@@ -649,7 +649,7 @@ export default function TeamRegistrationPage() {
       <div className="relative py-6 sm:py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mx-auto">
           <Link 
-            href="/login"
+            href="/"
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors mb-6 sm:mb-8 group text-sm sm:text-base"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
