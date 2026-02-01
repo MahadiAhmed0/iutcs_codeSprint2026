@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { LogOut, Search, Eye, Check, X, Filter, ChevronDown, Users, FileText, CheckCircle, Shield, Sparkles, AlertTriangle, Loader2 } from 'lucide-react';
+import { LogOut, Search, Eye, Check, X, Filter, ChevronDown, Users, FileText, CheckCircle, Shield, Sparkles, AlertTriangle, Loader2, Download } from 'lucide-react';
 import { ScrollToTop } from '@/components/scroll-to-top';
 import { useAuth } from '@/contexts/auth-context';
 import { createClient } from '@/lib/supabase/client';
@@ -33,11 +33,15 @@ interface Team {
 
 interface Submission {
   id: string;
-  teamId: string;
-  teamName: string;
-  gitHubLink: string;
-  submittedAt: string;
-  status: 'pending' | 'approved' | 'rejected';
+  team_id: string;
+  requirement_analysis_link: string;
+  stack_report_link: string;
+  dependencies_docs_link: string;
+  github_link: string;
+  status: string;
+  submitted_at: string;
+  // Joined from teams
+  team_name?: string;
 }
 
 interface VerificationData {
@@ -58,6 +62,7 @@ export default function AdminPanel() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | string>('all');
   const [teams, setTeams] = useState<Team[]>([]);
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   // Confirmation dialog state
@@ -109,8 +114,30 @@ export default function AdminPanel() {
       }
     };
 
+    const fetchSubmissions = async () => {
+      if (profile?.role === 'admin') {
+        const { data, error } = await supabase
+          .from('submissions')
+          .select('*, teams(name)')
+          .order('submitted_at', { ascending: false });
+
+        console.log('Fetched submissions:', { data, error });
+
+        if (data && !error) {
+          const formattedSubmissions = data.map((sub: any) => ({
+            ...sub,
+            team_name: sub.teams?.name || 'Unknown Team'
+          }));
+          setSubmissions(formattedSubmissions);
+        } else if (error) {
+          console.error('Error fetching submissions:', error);
+        }
+      }
+    };
+
     if (!authLoading && profile?.role === 'admin') {
       fetchTeams();
+      fetchSubmissions();
     }
   }, [profile, authLoading, supabase]);
 
@@ -140,10 +167,17 @@ export default function AdminPanel() {
     );
   }
 
-  // Mock submissions data (would be fetched from Supabase in production)
-  const submissions: Submission[] = [
-    { id: '1', teamId: 'TEAM-ABC', teamName: 'Code Warriors', gitHubLink: 'github.com/code-warriors/project', submittedAt: 'Feb 15, 2026', status: 'pending' },
-  ];
+  // Create submission data from teams (showing all teams with their submission status)
+  const teamsWithSubmissions = teams.map(team => {
+    const submission = submissions.find(s => s.team_id === team.id);
+    return {
+      teamId: team.id,
+      teamName: team.name,
+      hasSubmission: !!submission,
+      submission: submission || null,
+      submittedAt: submission ? new Date(submission.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null,
+    };
+  });
 
   const verification: VerificationData[] = teams.map(team => ({
     id: team.id,
@@ -160,9 +194,11 @@ export default function AdminPanel() {
     return matchesSearch;
   });
 
-  const filteredSubmissions = submissions.filter(sub => {
-    const matchesSearch = sub.teamName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || sub.status === filterStatus;
+  const filteredSubmissions = teamsWithSubmissions.filter(item => {
+    const matchesSearch = item.teamName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = filterStatus === 'all' || 
+      (filterStatus === 'pending' && !item.hasSubmission) ||
+      (filterStatus === 'submitted' && item.hasSubmission);
     return matchesSearch && matchesStatus;
   });
 
@@ -175,7 +211,7 @@ export default function AdminPanel() {
 
   const stats = {
     totalTeams: teams.length,
-    totalSubmissions: submissions.filter(s => s.status === 'pending').length,
+    totalSubmissions: submissions.length,
     pendingVerifications: teams.filter(t => !t.payment_verified).length,
   };
 
@@ -222,6 +258,88 @@ export default function AdminPanel() {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  // Download single team submission as PDF
+  const downloadTeamSubmission = (item: typeof teamsWithSubmissions[0]) => {
+    if (!item.submission) return;
+    
+    const content = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Submission - ${item.teamName}</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
+    h1 { color: #333; border-bottom: 2px solid #6366f1; padding-bottom: 10px; }
+    .info { margin: 20px 0; }
+    .label { font-weight: bold; color: #666; margin-top: 15px; }
+    .link { color: #6366f1; word-break: break-all; }
+    .date { color: #888; font-size: 14px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Team Submission: ${item.teamName}</h1>
+  <div class="info">
+    <p class="label">Requirement Analysis:</p>
+    <p class="link"><a href="${item.submission.requirement_analysis_link}">${item.submission.requirement_analysis_link}</a></p>
+    
+    <p class="label">Stack Report:</p>
+    <p class="link"><a href="${item.submission.stack_report_link}">${item.submission.stack_report_link}</a></p>
+    
+    <p class="label">Dependencies & Documentation:</p>
+    <p class="link"><a href="${item.submission.dependencies_docs_link}">${item.submission.dependencies_docs_link}</a></p>
+    
+    <p class="label">GitHub Repository:</p>
+    <p class="link"><a href="${item.submission.github_link}">${item.submission.github_link}</a></p>
+  </div>
+  <p class="date">Submitted: ${item.submittedAt}</p>
+</body>
+</html>`;
+    
+    const blob = new Blob([content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `submission-${item.teamName.replace(/\s+/g, '-').toLowerCase()}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Download all submissions as CSV
+  const downloadAllSubmissions = () => {
+    const submittedTeams = teamsWithSubmissions.filter(t => t.hasSubmission && t.submission);
+    if (submittedTeams.length === 0) {
+      alert('No submissions to download');
+      return;
+    }
+    
+    const headers = ['Team Name', 'Requirement Analysis', 'Stack Report', 'Dependencies & Docs', 'GitHub Link', 'Submitted At'];
+    const rows = submittedTeams.map(item => [
+      item.teamName,
+      item.submission!.requirement_analysis_link,
+      item.submission!.stack_report_link,
+      item.submission!.dependencies_docs_link,
+      item.submission!.github_link,
+      item.submittedAt || ''
+    ]);
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `all-submissions-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -438,47 +556,77 @@ export default function AdminPanel() {
 
           {/* Submissions Tab */}
           {activeTab === 'submissions' && (
-            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 overflow-hidden shadow-lg">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-background/50 border-b border-border/50">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Team Name</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">GitHub Link</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Submitted</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Status</th>
-                      <th className="px-6 py-4 text-right text-sm font-semibold text-white">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/30">
-                    {filteredSubmissions.map(submission => (
-                      <tr key={submission.id} className="hover:bg-accent/5 transition-colors">
-                        <td className="px-6 py-4 text-white font-medium">{submission.teamName}</td>
-                        <td className="px-6 py-4 text-muted-foreground text-sm truncate max-w-[200px]">{submission.gitHubLink}</td>
-                        <td className="px-6 py-4 text-muted-foreground text-sm">{submission.submittedAt}</td>
-                        <td className="px-6 py-4">
-                          <span className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${
-                            submission.status === 'pending' ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' :
-                            submission.status === 'approved' ? 'bg-green-500/10 text-green-300 border-green-500/30' :
-                            'bg-red-500/10 text-red-300 border-red-500/30'
-                          }`}>
-                            {submission.status.charAt(0).toUpperCase() + submission.status.slice(1)}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-right flex justify-end gap-2">
-                          <Button size="sm" variant="outline" className="border-green-500/30 text-green-400 hover:bg-green-500/10 hover:border-green-500/50 gap-1 bg-transparent transition-all">
-                            <Check className="w-4 h-4" />
-                          </Button>
-                          <Button size="sm" variant="outline" className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50 gap-1 bg-transparent transition-all">
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            <div className="space-y-4">
+              {/* Download All Button */}
+              <div className="flex justify-end">
+                <Button 
+                  onClick={downloadAllSubmissions}
+                  className="bg-accent hover:bg-accent/90 text-white gap-2"
+                  disabled={submissions.length === 0}
+                >
+                  <Download className="w-4 h-4" />
+                  Download All Submissions (CSV)
+                </Button>
               </div>
-            </Card>
+              
+              <Card className="bg-card/80 backdrop-blur-xl border border-border/50 overflow-hidden shadow-lg">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-background/50 border-b border-border/50">
+                      <tr>
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-white">Team Name</th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-white">Submitted</th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-white">Status</th>
+                        <th className="px-6 py-4 text-center text-sm font-semibold text-white">Download</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/30">
+                      {filteredSubmissions.map(item => (
+                        <tr key={item.teamId} className="hover:bg-accent/5 transition-colors">
+                          <td className="px-6 py-4 text-white font-medium">{item.teamName}</td>
+                          <td className="px-6 py-4 text-muted-foreground text-sm">
+                            {item.submittedAt || '-'}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                              item.hasSubmission 
+                                ? 'bg-green-500/10 text-green-300 border-green-500/30' 
+                                : 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+                            }`}>
+                              {item.hasSubmission ? 'Submitted' : 'Pending'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            {item.hasSubmission && item.submission ? (
+                              <div className="flex justify-center">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="border-accent/30 text-accent hover:bg-accent/10 hover:border-accent/50 bg-transparent transition-all gap-2"
+                                  onClick={() => downloadTeamSubmission(item)}
+                                >
+                                  <Download className="w-4 h-4" />
+                                  Download
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="text-center text-muted-foreground text-sm">-</div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                      {filteredSubmissions.length === 0 && (
+                        <tr>
+                          <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground">
+                            No submissions found
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            </div>
           )}
 
           {/* Verification Tab */}
