@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { LogOut, Search, Eye, Check, X, Filter, ChevronDown, Users, FileText, CheckCircle, Shield, Sparkles } from 'lucide-react';
+import { LogOut, Search, Eye, Check, X, Filter, ChevronDown, Users, FileText, CheckCircle, Shield, Sparkles, AlertTriangle, Loader2 } from 'lucide-react';
 import { ScrollToTop } from '@/components/scroll-to-top';
 import { useAuth } from '@/contexts/auth-context';
 import { createClient } from '@/lib/supabase/client';
@@ -44,6 +44,7 @@ interface VerificationData {
   id: string;
   teamId: string;
   teamName: string;
+  transactionId: string;
   status: VerificationStatus;
   submittedAt: string;
 }
@@ -58,6 +59,15 @@ export default function AdminPanel() {
   const [filterStatus, setFilterStatus] = useState<'all' | string>('all');
   const [teams, setTeams] = useState<Team[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Confirmation dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    action: 'approve' | 'reject' | null;
+    teamId: string | null;
+    teamName: string | null;
+  }>({ isOpen: false, action: null, teamId: null, teamName: null });
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Check admin access - wait for auth to load, then check
   useEffect(() => {
@@ -139,7 +149,8 @@ export default function AdminPanel() {
     id: team.id,
     teamId: team.id,
     teamName: team.name,
-    status: 'pending' as VerificationStatus,
+    transactionId: team.transaction_id,
+    status: team.payment_verified ? 'approved' : 'pending' as VerificationStatus,
     submittedAt: new Date(team.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
   }));
 
@@ -156,7 +167,8 @@ export default function AdminPanel() {
   });
 
   const filteredVerification = verification.filter(item => {
-    const matchesSearch = item.teamName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = item.teamName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         item.transactionId.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -164,7 +176,52 @@ export default function AdminPanel() {
   const stats = {
     totalTeams: teams.length,
     totalSubmissions: submissions.filter(s => s.status === 'pending').length,
-    pendingVerifications: verification.filter(v => v.status === 'pending').length,
+    pendingVerifications: teams.filter(t => !t.payment_verified).length,
+  };
+
+  // Handle opening confirmation dialog
+  const openConfirmDialog = (action: 'approve' | 'reject', teamId: string, teamName: string) => {
+    setConfirmDialog({ isOpen: true, action, teamId, teamName });
+  };
+
+  // Handle closing confirmation dialog
+  const closeConfirmDialog = () => {
+    setConfirmDialog({ isOpen: false, action: null, teamId: null, teamName: null });
+  };
+
+  // Handle payment verification
+  const handlePaymentVerification = async () => {
+    if (!confirmDialog.teamId || !confirmDialog.action) return;
+    
+    setIsProcessing(true);
+    
+    try {
+      const { error } = await supabase
+        .from('teams')
+        .update({ 
+          payment_verified: confirmDialog.action === 'approve',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', confirmDialog.teamId);
+
+      if (error) {
+        console.error('Error updating payment status:', error);
+        alert('Failed to update payment status. Please try again.');
+      } else {
+        // Update local state
+        setTeams(prev => prev.map(team => 
+          team.id === confirmDialog.teamId 
+            ? { ...team, payment_verified: confirmDialog.action === 'approve' }
+            : team
+        ));
+        closeConfirmDialog();
+      }
+    } catch (err) {
+      console.error('Error:', err);
+      alert('An error occurred. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -256,7 +313,7 @@ export default function AdminPanel() {
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div className="relative flex items-center justify-between">
               <div>
-                <p className="text-muted-foreground text-sm">Pending Verification</p>
+                <p className="text-muted-foreground text-sm">Pending Payment Verification</p>
                 <p className="text-3xl font-bold text-white mt-2">{stats.pendingVerifications}</p>
               </div>
               <div className="w-14 h-14 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 group-hover:scale-110 transition-transform">
@@ -432,7 +489,8 @@ export default function AdminPanel() {
                   <thead className="bg-background/50 border-b border-border/50">
                     <tr>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-white">Team Name</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Submitted</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Transaction ID</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Registered</th>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-white">Status</th>
                       <th className="px-6 py-4 text-right text-sm font-semibold text-white">Action</th>
                     </tr>
@@ -441,6 +499,7 @@ export default function AdminPanel() {
                     {filteredVerification.map(item => (
                       <tr key={item.id} className="hover:bg-accent/5 transition-colors">
                         <td className="px-6 py-4 text-white font-medium">{item.teamName}</td>
+                        <td className="px-6 py-4 text-muted-foreground text-sm font-mono">{item.transactionId}</td>
                         <td className="px-6 py-4 text-muted-foreground text-sm">{item.submittedAt}</td>
                         <td className="px-6 py-4">
                           <span className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${
@@ -452,12 +511,30 @@ export default function AdminPanel() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right flex justify-end gap-2">
-                          <Button size="sm" variant="outline" className="border-green-500/30 text-green-400 hover:bg-green-500/10 hover:border-green-500/50 bg-transparent transition-all">
-                            <Check className="w-4 h-4" />
-                          </Button>
-                          <Button size="sm" variant="outline" className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50 bg-transparent transition-all">
-                            <X className="w-4 h-4" />
-                          </Button>
+                          {item.status === 'pending' ? (
+                            <>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="border-green-500/30 text-green-400 hover:bg-green-500/10 hover:border-green-500/50 bg-transparent transition-all"
+                                onClick={() => openConfirmDialog('approve', item.teamId, item.teamName)}
+                              >
+                                <Check className="w-4 h-4" />
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50 bg-transparent transition-all"
+                                onClick={() => openConfirmDialog('reject', item.teamId, item.teamName)}
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              {item.status === 'approved' ? 'Verified' : 'Rejected'}
+                            </span>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -468,6 +545,84 @@ export default function AdminPanel() {
           )}
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      {confirmDialog.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={closeConfirmDialog}
+          />
+          
+          {/* Dialog */}
+          <Card className="relative bg-card border border-border/50 p-6 w-full max-w-md mx-4 shadow-2xl">
+            <div className="space-y-6">
+              {/* Icon */}
+              <div className="flex justify-center">
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                  confirmDialog.action === 'approve' 
+                    ? 'bg-green-500/10 border-2 border-green-500/30' 
+                    : 'bg-red-500/10 border-2 border-red-500/30'
+                }`}>
+                  {confirmDialog.action === 'approve' ? (
+                    <Check className="w-8 h-8 text-green-500" />
+                  ) : (
+                    <AlertTriangle className="w-8 h-8 text-red-500" />
+                  )}
+                </div>
+              </div>
+              
+              {/* Content */}
+              <div className="text-center space-y-2">
+                <h3 className="text-xl font-semibold text-white">
+                  {confirmDialog.action === 'approve' ? 'Approve Payment' : 'Reject Payment'}
+                </h3>
+                <p className="text-muted-foreground">
+                  Are you sure you want to {confirmDialog.action === 'approve' ? 'approve' : 'reject'} the payment for team <span className="text-white font-medium">"{confirmDialog.teamName}"</span>?
+                </p>
+                {confirmDialog.action === 'reject' && (
+                  <p className="text-red-400 text-sm">
+                    This will mark the payment as rejected.
+                  </p>
+                )}
+              </div>
+              
+              {/* Actions */}
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  className="flex-1 border-border/50 text-white hover:bg-accent/10 bg-transparent"
+                  onClick={closeConfirmDialog}
+                  disabled={isProcessing}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className={`flex-1 ${
+                    confirmDialog.action === 'approve'
+                      ? 'bg-green-600 hover:bg-green-700 text-white'
+                      : 'bg-red-600 hover:bg-red-700 text-white'
+                  }`}
+                  onClick={handlePaymentVerification}
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      {confirmDialog.action === 'approve' ? 'Yes, Approve' : 'Yes, Reject'}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
 
       <ScrollToTop />
     </div>
