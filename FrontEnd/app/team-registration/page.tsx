@@ -213,24 +213,53 @@ export default function TeamRegistrationPage() {
 
   // Redirect if already registered or not logged in
   useEffect(() => {
-    if (!authLoading) {
-      console.log('Auth loaded, checking redirect...', { user: !!user, isRegistered: profile?.is_registered });
-      if (!user) {
+    const checkRegistrationStatus = async () => {
+      if (!authLoading && user) {
+        console.log('Auth loaded, checking redirect...', { user: !!user, isRegistered: profile?.is_registered });
+        
+        // Check if profile says registered
+        if (profile?.is_registered) {
+          console.log('Already registered (profile), redirecting to dashboard...');
+          router.push('/team-dashboard');
+          return;
+        }
+        
+        // Also check if there's a team for this user (in case profile wasn't updated)
+        const { data: existingTeam } = await supabase
+          .from('teams')
+          .select('id')
+          .eq('leader_id', user.id)
+          .single();
+        
+        if (existingTeam) {
+          console.log('Found existing team, redirecting to dashboard...');
+          // Update profile and redirect
+          await supabase
+            .from('profiles')
+            .update({ is_registered: true, team_id: existingTeam.id })
+            .eq('id', user.id);
+          await refreshProfile();
+          router.push('/team-dashboard');
+          return;
+        }
+        
+        // User is logged in but not registered - fill form
+        if (user.email) {
+          console.log('User logged in, filling form...');
+          setFormData(prev => ({
+            ...prev,
+            leaderEmail: user.email || '',
+            leaderName: user.user_metadata?.full_name || '',
+          }));
+        }
+      } else if (!authLoading && !user) {
         console.log('No user, redirecting to login...');
         router.push('/login');
-      } else if (profile?.is_registered) {
-        console.log('Already registered, redirecting to dashboard...');
-        router.push('/team-dashboard');
-      } else if (user.email) {
-        console.log('User logged in, filling form...');
-        setFormData(prev => ({
-          ...prev,
-          leaderEmail: user.email || '',
-          leaderName: user.user_metadata?.full_name || '',
-        }));
       }
-    }
-  }, [user, profile, authLoading, router]);
+    };
+    
+    checkRegistrationStatus();
+  }, [user, profile, authLoading, router, supabase, refreshProfile]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -505,14 +534,46 @@ export default function TeamRegistrationPage() {
         throw profileError;
       }
 
-      // Refresh profile data
-      await refreshProfile();
+      // Refresh profile data - wait for it to complete
+      console.log('Refreshing profile...');
+      try {
+        await refreshProfile();
+        console.log('Profile refreshed successfully');
+      } catch (refreshErr) {
+        console.warn('Profile refresh failed, retrying...', refreshErr);
+        // Retry once
+        try {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          await refreshProfile();
+          console.log('Profile refreshed on retry');
+        } catch (retryErr) {
+          console.warn('Profile refresh retry failed (non-critical):', retryErr);
+        }
+      }
       
       console.log('Registration complete!');
       setStep('success');
     } catch (err: any) {
       console.error('Registration error:', err);
-      setError(err.message || err.code || 'Failed to register team. Please try again.');
+      console.error('Registration error (stringified):', JSON.stringify(err, null, 2));
+      
+      // Better error message extraction
+      let errorMessage = 'Failed to register team. Please try again.';
+      if (err?.message) {
+        errorMessage = err.message;
+      } else if (err?.error?.message) {
+        errorMessage = err.error.message;
+      } else if (err?.code) {
+        errorMessage = `Error code: ${err.code}`;
+      } else if (err?.details) {
+        errorMessage = err.details;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      } else if (err?.error_description) {
+        errorMessage = err.error_description;
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

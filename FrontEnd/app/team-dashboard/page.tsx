@@ -38,21 +38,45 @@ export default function TeamDashboard() {
 
   useEffect(() => {
     const fetchTeamData = async () => {
-      if (!authLoading && user && profile?.team_id) {
-        const { data, error } = await supabase
-          .from('teams')
-          .select('*')
-          .eq('id', profile.team_id)
-          .single();
+      if (!authLoading && user) {
+        // Try to get team by profile.team_id first, then fallback to leader_id
+        let teamFound = false;
+        
+        if (profile?.team_id) {
+          const { data, error } = await supabase
+            .from('teams')
+            .select('*')
+            .eq('id', profile.team_id)
+            .single();
 
-        if (data && !error) {
-          setTeamData(data);
+          if (data && !error) {
+            setTeamData(data);
+            teamFound = true;
+          }
         }
+        
+        // Fallback: check if user is a team leader
+        if (!teamFound) {
+          const { data, error } = await supabase
+            .from('teams')
+            .select('*')
+            .eq('leader_id', user.id)
+            .single();
+
+          if (data && !error) {
+            setTeamData(data);
+            teamFound = true;
+          }
+        }
+        
+        // If no team found, redirect to registration
+        if (!teamFound && !profile?.is_registered) {
+          router.push('/team-registration');
+        }
+        
         setIsLoading(false);
       } else if (!authLoading && !user) {
         router.push('/login');
-      } else if (!authLoading && user && !profile?.is_registered) {
-        router.push('/team-registration');
       }
     };
 
