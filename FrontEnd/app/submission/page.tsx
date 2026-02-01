@@ -428,31 +428,31 @@ export default function SubmissionPage() {
       </nav>
 
       {/* Main Content */}
-      <div className="relative py-8 px-4 sm:px-6 lg:px-8">
+      <div className="relative py-6 sm:py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
-          <div className="mb-8 space-y-4">
-            <div className="flex items-center gap-2">
-              <Send className="w-5 h-5 text-accent" />
-              <span className="text-accent font-medium">Submission</span>
+          <div className="mb-6 sm:mb-8 space-y-3 sm:space-y-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <Send className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
+              <span className="text-accent font-medium text-sm sm:text-base">Submission</span>
               {existingSubmission && (
-                <span className="ml-2 px-2 py-0.5 text-xs bg-green-500/20 text-green-400 rounded-full border border-green-500/30">
+                <span className="ml-0 sm:ml-2 px-2 py-0.5 text-[10px] sm:text-xs bg-green-500/20 text-green-400 rounded-full border border-green-500/30">
                   Previously Submitted
                 </span>
               )}
             </div>
-            <h1 className="text-4xl font-bold">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
               <span className="bg-gradient-to-r from-white via-white to-accent bg-clip-text text-transparent">
                 {existingSubmission ? 'Update Submission' : 'Project Submission'}
               </span>
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-sm sm:text-base">
               {existingSubmission 
                 ? 'Update your submission links below. You can update until the deadline is reached.'
                 : 'Only team leaders can submit projects. All links must be publicly accessible.'}
             </p>
           </div>
 
-          <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-8 space-y-8 shadow-2xl shadow-accent/5 relative overflow-hidden">
+          <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-5 sm:p-8 space-y-6 sm:space-y-8 shadow-2xl shadow-accent/5 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-primary/5 pointer-events-none"></div>
             
             {error && (
@@ -590,12 +590,12 @@ export default function SubmissionPage() {
               </div>
 
               {/* Submit Button */}
-              <div className="flex gap-4 pt-4">
-                <Link href="/team-dashboard" className="flex-1">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
+                <Link href="/team-dashboard" className="flex-1 order-2 sm:order-1">
                   <Button 
                     type="button"
                     variant="outline"
-                    className="w-full border-border/50 text-white hover:bg-accent/5 hover:border-accent/30 h-12 bg-transparent transition-all"
+                    className="w-full border-border/50 text-white hover:bg-accent/5 hover:border-accent/30 h-11 sm:h-12 bg-transparent transition-all text-sm sm:text-base"
                   >
                     Cancel
                   </Button>
@@ -603,7 +603,7 @@ export default function SubmissionPage() {
                 <Button
                   type="submit"
                   disabled={isLoading || !formData.requirement_analysis_link || !formData.stack_report_link || !formData.dependencies_docs_link || !formData.github_link}
-                  className="flex-1 bg-accent hover:bg-accent/90 text-white h-12 font-semibold disabled:opacity-50 shadow-lg shadow-accent/25 hover:shadow-accent/40 hover:scale-[1.01] active:scale-[0.99] transition-all"
+                  className="flex-1 order-1 sm:order-2 bg-accent hover:bg-accent/90 text-white h-11 sm:h-12 font-semibold disabled:opacity-50 shadow-lg shadow-accent/25 hover:shadow-accent/40 hover:scale-[1.01] active:scale-[0.99] transition-all text-sm sm:text-base"
                 >
                   {isLoading ? (
                     <>

@@ -154,40 +154,40 @@ export default function TeamDashboard() {
       </nav>
 
       {/* Main Content */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
         {/* Header Section */}
-        <div className="space-y-4">
+        <div className="space-y-2 sm:space-y-4">
           <div className="flex items-center gap-2">
-            <span className="text-accent font-medium">Dashboard</span>
+            <span className="text-accent font-medium text-sm sm:text-base">Dashboard</span>
           </div>
-          <h1 className="text-4xl font-bold">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
             <span className="bg-gradient-to-r from-white via-white to-accent bg-clip-text text-transparent">
               Welcome, {displayData.leader_name}!
             </span>
           </h1>
-          <p className="text-muted-foreground text-lg">Manage your team and submit your project</p>
+          <p className="text-muted-foreground text-sm sm:text-lg">Manage your team and submit your project</p>
         </div>
 
         {/* Team Info Card */}
-        <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-8 shadow-xl shadow-accent/5 relative overflow-hidden">
+        <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-5 sm:p-8 shadow-xl shadow-accent/5 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-primary/5 pointer-events-none"></div>
-          <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <p className="text-muted-foreground text-sm">Team Name</p>
-              <p className="text-xl font-bold text-white">{displayData.name}</p>
+          <div className="relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+            <div className="space-y-1 sm:space-y-2">
+              <p className="text-muted-foreground text-xs sm:text-sm">Team Name</p>
+              <p className="text-lg sm:text-xl font-bold text-white">{displayData.name}</p>
             </div>
             
-            <div className="space-y-2">
-              <p className="text-muted-foreground text-sm">Team Members</p>
-              <p className="text-xl font-bold text-white">{memberCount}</p>
+            <div className="space-y-1 sm:space-y-2">
+              <p className="text-muted-foreground text-xs sm:text-sm">Team Members</p>
+              <p className="text-lg sm:text-xl font-bold text-white">{memberCount}</p>
               <Link href="#members" className="text-accent text-xs hover:underline inline-flex items-center gap-1 group">
                 View Members
                 <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
             
-            <div className="space-y-2">
-              <p className="text-muted-foreground text-sm">Status</p>
+            <div className="space-y-1 sm:space-y-2">
+              <p className="text-muted-foreground text-xs sm:text-sm">Status</p>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
                 <p className="text-white font-semibold capitalize">{displayData.submission_status}</p>
@@ -197,11 +197,11 @@ export default function TeamDashboard() {
         </Card>
 
         {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Left Column - Quick Actions */}
-          <div className="lg:col-span-1 space-y-4">
+          <div className="lg:col-span-1 space-y-4 order-2 lg:order-1">
             {/* Payment Verification Status */}
-            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-6 space-y-4 shadow-lg">
+            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-5 sm:p-6 space-y-4 shadow-lg">
               <h2 className="text-lg font-semibold text-white flex items-center gap-2">
                 <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center border border-accent/20">
                   <CheckCircle className="w-4 h-4 text-accent" />
@@ -235,7 +235,7 @@ export default function TeamDashboard() {
             </Card>
 
             {/* Problem Statement */}
-            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-6 space-y-4 shadow-lg">
+            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-5 sm:p-6 space-y-4 shadow-lg">
               <h3 className="font-semibold text-white flex items-center gap-2">
                 <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center border border-accent/20">
                   <FileText className="w-4 h-4 text-accent" />
@@ -269,7 +269,7 @@ export default function TeamDashboard() {
             </Card>
 
             {/* Submission Status */}
-            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-6 space-y-4 shadow-lg">
+            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-5 sm:p-6 space-y-4 shadow-lg">
               <h2 className="text-lg font-semibold text-white flex items-center gap-2">
                 <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center border border-accent/20">
                   <FileText className="w-4 h-4 text-accent" />
@@ -323,32 +323,32 @@ export default function TeamDashboard() {
           </div>
 
           {/* Right Column - Team Details */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-6 order-1 lg:order-2">
             {/* Team Leader Info */}
-            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-6 space-y-4 shadow-lg relative overflow-hidden">
+            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-5 sm:p-6 space-y-4 shadow-lg relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-transparent pointer-events-none"></div>
-              <h2 className="relative text-lg font-semibold text-white">Team Leader</h2>
+              <h2 className="relative text-base sm:text-lg font-semibold text-white">Team Leader</h2>
               <div className="relative flex items-start justify-between">
-                <div className="space-y-2">
-                  <p className="text-white font-medium text-lg">{displayData.leader_name}</p>
-                  <p className="text-muted-foreground text-sm">{displayData.leader_email}</p>
+                <div className="space-y-2 flex-1 min-w-0">
+                  <p className="text-white font-medium text-base sm:text-lg truncate">{displayData.leader_name}</p>
+                  <p className="text-muted-foreground text-xs sm:text-sm truncate">{displayData.leader_email}</p>
                   <span className="inline-block px-3 py-1 bg-accent/10 text-accent text-xs rounded-full border border-accent/20">
                     Team Leader
                   </span>
                 </div>
-                <div className="relative">
+                <div className="relative flex-shrink-0 ml-3">
                   <div className="absolute inset-0 bg-accent/20 rounded-full blur-lg"></div>
-                  <div className="relative w-14 h-14 bg-gradient-to-br from-accent/20 to-accent/5 rounded-full flex items-center justify-center border border-accent/50 shadow-lg">
-                    <span className="text-accent font-bold text-xl">{displayData.leader_name?.charAt(0) || 'T'}</span>
+                  <div className="relative w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-accent/20 to-accent/5 rounded-full flex items-center justify-center border border-accent/50 shadow-lg">
+                    <span className="text-accent font-bold text-lg sm:text-xl">{displayData.leader_name?.charAt(0) || 'T'}</span>
                   </div>
                 </div>
               </div>
             </Card>
 
             {/* Team Members */}
-            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-6 space-y-4 shadow-lg" id="members">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-5 sm:p-6 space-y-4 shadow-lg" id="members">
+              <div className="flex items-center justify-between mb-2 sm:mb-4">
+                <h2 className="text-base sm:text-lg font-semibold text-white flex items-center gap-2">
                   <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center border border-accent/20">
                     <Users className="w-4 h-4 text-accent" />
                   </div>
@@ -358,7 +358,7 @@ export default function TeamDashboard() {
 
               <div className="space-y-3">
                 {/* Leader */}
-                <div className="flex items-center justify-between p-4 bg-background/50 border border-border/30 rounded-xl hover:border-accent/30 hover:bg-accent/5 transition-all group">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 p-3 sm:p-4 bg-background/50 border border-border/30 rounded-xl hover:border-accent/30 hover:bg-accent/5 transition-all group">
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <div className="absolute inset-0 bg-accent/20 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -379,7 +379,7 @@ export default function TeamDashboard() {
                 {/* Members */}
                 {teamData?.members && teamData.members.length > 0 ? (
                   teamData.members.map((member, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-4 bg-background/50 border border-border/30 rounded-xl hover:border-accent/30 hover:bg-accent/5 transition-all group">
+                    <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 p-3 sm:p-4 bg-background/50 border border-border/30 rounded-xl hover:border-accent/30 hover:bg-accent/5 transition-all group">
                       <div className="flex items-center gap-3">
                         <div className="relative">
                           <div className="absolute inset-0 bg-accent/20 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -387,12 +387,12 @@ export default function TeamDashboard() {
                             <span className="text-accent font-bold">{member.name?.charAt(0) || 'M'}</span>
                           </div>
                         </div>
-                        <div>
-                          <p className="text-white font-medium">{member.name}</p>
-                          <p className="text-muted-foreground text-xs font-mono">{member.studentId || 'No Student ID'}</p>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-white font-medium truncate">{member.name}</p>
+                          <p className="text-muted-foreground text-xs font-mono truncate">{member.studentId || 'No Student ID'}</p>
                         </div>
                       </div>
-                      <span className="text-xs px-3 py-1.5 rounded-full font-medium bg-background/50 text-muted-foreground border border-border/50">
+                      <span className="text-xs px-3 py-1.5 rounded-full font-medium bg-background/50 text-muted-foreground border border-border/50 self-start sm:self-auto">
                         Member
                       </span>
                     </div>
@@ -408,8 +408,8 @@ export default function TeamDashboard() {
             </Card>
 
             {/* Timeline */}
-            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-6 space-y-4 shadow-lg">
-              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-5 sm:p-6 space-y-4 shadow-lg">
+              <h2 className="text-base sm:text-lg font-semibold text-white flex items-center gap-2">
                 <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center border border-accent/20">
                   <Clock className="w-4 h-4 text-accent" />
                 </div>
