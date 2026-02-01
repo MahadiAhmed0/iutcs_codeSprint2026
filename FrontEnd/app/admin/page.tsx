@@ -435,93 +435,95 @@ export default function AdminPanel() {
       {/* Main Content */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="space-y-4">
+        <div className="space-y-2 sm:space-y-4">
           
-          <h1 className="text-4xl font-bold">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
             <span className="bg-gradient-to-r from-white via-white to-accent bg-clip-text text-transparent">
               Admin Dashboard
             </span>
           </h1>
-          <p className="text-muted-foreground text-sm sm:text-base">Manage teams, submissions, and verify financial information</p>
+          <p className="text-muted-foreground text-xs sm:text-sm md:text-base">Manage teams, submissions, and verify financial information</p>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
           {/* Verified Teams Card */}
-          <Card className="bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-xl border border-border/50 p-6 shadow-xl relative overflow-hidden group hover:border-accent/50 hover:shadow-accent/10 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+          <Card className="bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-xl border border-border/50 p-4 sm:p-6 shadow-xl relative overflow-hidden group hover:border-accent/50 hover:shadow-accent/10 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
             <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="absolute -top-12 -right-12 w-32 h-32 bg-accent/10 rounded-full blur-2xl group-hover:bg-accent/20 transition-colors duration-300"></div>
+            <div className="absolute -top-12 -right-12 w-24 sm:w-32 h-24 sm:h-32 bg-accent/10 rounded-full blur-2xl group-hover:bg-accent/20 transition-colors duration-300"></div>
             <div className="relative">
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-accent/20 to-accent/5 rounded-2xl flex items-center justify-center border border-accent/30 shadow-lg shadow-accent/10 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                  <Users className="w-7 h-7 text-accent" />
+              <div className="flex items-start justify-between mb-3 sm:mb-4">
+                <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-accent/20 to-accent/5 rounded-xl sm:rounded-2xl flex items-center justify-center border border-accent/30 shadow-lg shadow-accent/10 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                  <Users className="w-5 h-5 sm:w-7 sm:h-7 text-accent" />
                 </div>
-                <div className="flex items-center gap-1 px-2 py-1 bg-accent/10 rounded-full border border-accent/20">
-                  <div className="w-2 h-2 bg-accent rounded-full animate-pulse"></div>
-                  <span className="text-[10px] text-accent font-medium">LIVE</span>
+                <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-accent/10 rounded-full border border-accent/20">
+                  <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-accent rounded-full animate-pulse"></div>
+                  <span className="text-[8px] sm:text-[10px] text-accent font-medium">LIVE</span>
                 </div>
               </div>
               <div>
-                <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider mb-1">Verified Teams</p>
-                <p className="text-3xl font-bold text-white tracking-tight">{stats.totalVerified}</p>
-                <p className="text-xs text-accent/80 mt-2 flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" />
-                  Payment confirmed
+                <p className="text-muted-foreground text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-1">Verified Teams</p>
+                <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{stats.totalVerified}</p>
+                <p className="text-[10px] sm:text-xs text-accent/80 mt-1 sm:mt-2 flex items-center gap-1">
+                  <CheckCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                  <span className="hidden sm:inline">Payment confirmed</span>
+                  <span className="sm:hidden">Confirmed</span>
                 </p>
               </div>
             </div>
           </Card>
 
           {/* Pending Submissions Card */}
-          <Card className="bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-xl border border-border/50 p-6 shadow-xl relative overflow-hidden group hover:border-amber-500/50 hover:shadow-amber-500/10 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+          <Card className="bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-xl border border-border/50 p-4 sm:p-6 shadow-xl relative overflow-hidden group hover:border-amber-500/50 hover:shadow-amber-500/10 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
             <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-colors duration-300"></div>
+            <div className="absolute -top-12 -right-12 w-24 sm:w-32 h-24 sm:h-32 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-colors duration-300"></div>
             <div className="relative">
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-amber-500/20 to-amber-500/5 rounded-2xl flex items-center justify-center border border-amber-500/30 shadow-lg shadow-amber-500/10 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                  <FileText className="w-7 h-7 text-amber-500" />
+              <div className="flex items-start justify-between mb-3 sm:mb-4">
+                <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-amber-500/20 to-amber-500/5 rounded-xl sm:rounded-2xl flex items-center justify-center border border-amber-500/30 shadow-lg shadow-amber-500/10 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                  <FileText className="w-5 h-5 sm:w-7 sm:h-7 text-amber-500" />
                 </div>
                 {stats.pendingSubmissions > 0 && (
-                  <div className="flex items-center gap-1 px-2 py-1 bg-amber-500/10 rounded-full border border-amber-500/20">
-                    <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
-                    <span className="text-[10px] text-amber-400 font-medium">PENDING</span>
+                  <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-amber-500/10 rounded-full border border-amber-500/20">
+                    <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                    <span className="text-[8px] sm:text-[10px] text-amber-400 font-medium">PENDING</span>
                   </div>
                 )}
               </div>
               <div>
-                <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider mb-1">Pending Submissions</p>
-                <p className="text-3xl font-bold text-white tracking-tight">{stats.pendingSubmissions}</p>
-                <p className="text-xs text-amber-400/80 mt-2 flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" />
-                  Awaiting from teams
+                <p className="text-muted-foreground text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-1">Pending Submissions</p>
+                <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{stats.pendingSubmissions}</p>
+                <p className="text-[10px] sm:text-xs text-amber-400/80 mt-1 sm:mt-2 flex items-center gap-1">
+                  <AlertTriangle className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                  <span className="hidden sm:inline">Awaiting from teams</span>
+                  <span className="sm:hidden">Awaiting</span>
                 </p>
               </div>
             </div>
           </Card>
 
           {/* Pending Verification Card */}
-          <Card className="bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-xl border border-border/50 p-6 shadow-xl relative overflow-hidden group hover:border-blue-500/50 hover:shadow-blue-500/10 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+          <Card className="bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-xl border border-border/50 p-4 sm:p-6 shadow-xl relative overflow-hidden group hover:border-blue-500/50 hover:shadow-blue-500/10 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="absolute -top-12 -right-12 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-colors duration-300"></div>
+            <div className="absolute -top-12 -right-12 w-24 sm:w-32 h-24 sm:h-32 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-colors duration-300"></div>
             <div className="relative">
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-blue-500/20 to-blue-500/5 rounded-2xl flex items-center justify-center border border-blue-500/30 shadow-lg shadow-blue-500/10 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                  <Shield className="w-7 h-7 text-blue-500" />
+              <div className="flex items-start justify-between mb-3 sm:mb-4">
+                <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-500/20 to-blue-500/5 rounded-xl sm:rounded-2xl flex items-center justify-center border border-blue-500/30 shadow-lg shadow-blue-500/10 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                  <Shield className="w-5 h-5 sm:w-7 sm:h-7 text-blue-500" />
                 </div>
                 {stats.pendingVerifications > 0 && (
-                  <div className="flex items-center gap-1 px-2 py-1 bg-blue-500/10 rounded-full border border-blue-500/20">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                    <span className="text-[10px] text-blue-400 font-medium">ACTION</span>
+                  <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-blue-500/10 rounded-full border border-blue-500/20">
+                    <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <span className="text-[8px] sm:text-[10px] text-blue-400 font-medium">ACTION</span>
                   </div>
                 )}
               </div>
               <div>
-                <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider mb-1">Pending Verification</p>
+                <p className="text-muted-foreground text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-1">Pending Verification</p>
                 
-                <p className="text-3xl font-bold text-white tracking-tight">{stats.pendingVerifications}</p>
-                <p className="text-xs text-blue-400/80 mt-2 flex items-center gap-1">
+                <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{stats.pendingVerifications}</p>
+                <p className="text-[10px] sm:text-xs text-blue-400/80 mt-1 sm:mt-2 flex items-center gap-1">
               
-                  <Eye className="w-3 h-3" />
+                  <Eye className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                   Needs review
                 </p>
               </div>
@@ -529,24 +531,24 @@ export default function AdminPanel() {
           </Card>
 
           {/* Total Revenue Card */}
-          <Card className="bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-xl border border-border/50 p-6 shadow-xl relative overflow-hidden group hover:border-green-500/50 hover:shadow-green-500/10 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+          <Card className="bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-xl border border-border/50 p-4 sm:p-6 shadow-xl relative overflow-hidden group hover:border-green-500/50 hover:shadow-green-500/10 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
             <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="absolute -top-12 -right-12 w-32 h-32 bg-green-500/10 rounded-full blur-2xl group-hover:bg-green-500/20 transition-colors duration-300"></div>
+            <div className="absolute -top-12 -right-12 w-24 sm:w-32 h-24 sm:h-32 bg-green-500/10 rounded-full blur-2xl group-hover:bg-green-500/20 transition-colors duration-300"></div>
             <div className="relative">
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-green-500/20 to-green-500/5 rounded-2xl flex items-center justify-center border border-green-500/30 shadow-lg shadow-green-500/10 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                  <span className="text-2xl font-bold text-green-500">৳</span>
+              <div className="flex items-start justify-between mb-3 sm:mb-4">
+                <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-green-500/20 to-green-500/5 rounded-xl sm:rounded-2xl flex items-center justify-center border border-green-500/30 shadow-lg shadow-green-500/10 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                  <span className="text-xl sm:text-2xl font-bold text-green-500">৳</span>
                 </div>
-                <div className="flex items-center gap-1 px-2 py-1 bg-green-500/10 rounded-full border border-green-500/20">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-[10px] text-green-400 font-medium">EARNED</span>
+                <div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-green-500/10 rounded-full border border-green-500/20">
+                  <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-[8px] sm:text-[10px] text-green-400 font-medium">EARNED</span>
                 </div>
               </div>
               <div>
-                <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider mb-1">Total Revenue</p>
-                <p className="text-3xl font-bold text-white tracking-tight">৳{stats.totalRevenue.toLocaleString()}</p>
-                <p className="text-xs text-green-400/80 mt-2">
-                  {stats.totalVerified} teams × ৳300 each
+                <p className="text-muted-foreground text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-1">Total Revenue</p>
+                <p className="text-xl sm:text-3xl font-bold text-white tracking-tight">৳{stats.totalRevenue.toLocaleString()}</p>
+                <p className="text-[10px] sm:text-xs text-green-400/80 mt-1 sm:mt-2">
+                  {stats.totalVerified} × ৳300
                 </p>
               </div>
             </div>
@@ -554,24 +556,26 @@ export default function AdminPanel() {
         </div>
 
         {/* Download All Teams Button */}
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
           <Button 
             onClick={downloadAllSubmissions}
             variant="outline"
-            className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/50 bg-transparent gap-2"
+            className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/50 bg-transparent gap-2 text-xs sm:text-sm"
             disabled={submissions.length === 0}
           >
-            <Download className="w-4 h-4" />
-            Download All Submissions (CSV)
+            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Download All Submissions (CSV)</span>
+            <span className="sm:hidden">Submissions CSV</span>
           </Button>
           <Button 
             onClick={downloadAllTeams}
             variant="outline"
-            className="border-accent/30 text-accent hover:bg-accent/10 hover:border-accent/50 bg-transparent gap-2"
+            className="border-accent/30 text-accent hover:bg-accent/10 hover:border-accent/50 bg-transparent gap-2 text-xs sm:text-sm"
             disabled={verifiedTeams.length === 0}
           >
-            <Download className="w-4 h-4" />
-            Download All Teams (CSV)
+            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Download All Teams (CSV)</span>
+            <span className="sm:hidden">Teams CSV</span>
           </Button>
         </div>
 
@@ -649,9 +653,9 @@ export default function AdminPanel() {
           {activeTab === 'teams' && (
             <div className="space-y-4">
               {/* Info Banner */}
-              <div className="bg-accent/10 border border-accent/30 rounded-lg px-4 py-3 flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-accent flex-shrink-0" />
-                <p className="text-sm text-accent">
+              <div className="bg-accent/10 border border-accent/30 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 flex items-start sm:items-center gap-2 sm:gap-3">
+                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-accent flex-shrink-0 mt-0.5 sm:mt-0" />
+                <p className="text-xs sm:text-sm text-accent">
                   Only payment verified teams are shown here. Teams pending verification can be found in the Verification tab.
                 </p>
               </div>
@@ -712,11 +716,11 @@ export default function AdminPanel() {
 
           {/* Team Details Modal */}
           {selectedTeam && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedTeam(null)}>
-              <Card className="bg-card/95 backdrop-blur-xl border border-border/50 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-                <div className="p-6 border-b border-border/50 flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                    <Users className="w-5 h-5 text-accent" />
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4" onClick={() => setSelectedTeam(null)}>
+              <Card className="bg-card/95 backdrop-blur-xl border border-border/50 shadow-2xl max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                <div className="p-4 sm:p-6 border-b border-border/50 flex items-center justify-between sticky top-0 bg-card/95 backdrop-blur-xl z-10">
+                  <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                    <Users className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
                     Team Details
                   </h2>
                   <Button 
@@ -729,42 +733,42 @@ export default function AdminPanel() {
                   </Button>
                 </div>
                 
-                <div className="p-6 space-y-6">
+                <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                   {/* Team Name */}
-                  <div className="text-center pb-4 border-b border-border/30">
-                    <h3 className="text-2xl font-bold text-white">{selectedTeam.name}</h3>
+                  <div className="text-center pb-3 sm:pb-4 border-b border-border/30">
+                    <h3 className="text-xl sm:text-2xl font-bold text-white break-words">{selectedTeam.name}</h3>
                     <span className="inline-block mt-2 px-3 py-1 bg-green-500/10 text-green-300 border border-green-500/30 rounded-full text-xs font-semibold">
                       Payment Verified
                     </span>
                   </div>
                   
                   {/* Leader Info */}
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold text-accent uppercase tracking-wider">Team Leader</h4>
-                    <div className="bg-background/50 rounded-lg p-4 space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Name:</span>
-                        <span className="text-white font-medium">{selectedTeam.leader_name}</span>
+                  <div className="space-y-2 sm:space-y-3">
+                    <h4 className="text-xs sm:text-sm font-semibold text-accent uppercase tracking-wider">Team Leader</h4>
+                    <div className="bg-background/50 rounded-lg p-3 sm:p-4 space-y-2">
+                      <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                        <span className="text-muted-foreground text-xs sm:text-sm">Name:</span>
+                        <span className="text-white font-medium text-sm sm:text-base">{selectedTeam.leader_name}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Email:</span>
-                        <span className="text-white font-medium">{selectedTeam.leader_email}</span>
+                      <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                        <span className="text-muted-foreground text-xs sm:text-sm">Email:</span>
+                        <span className="text-white font-medium text-xs sm:text-sm break-all">{selectedTeam.leader_email}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Phone:</span>
-                        <span className="text-white font-medium">{selectedTeam.leader_phone}</span>
+                      <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                        <span className="text-muted-foreground text-xs sm:text-sm">Phone:</span>
+                        <span className="text-white font-medium text-sm">{selectedTeam.leader_phone}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Student ID:</span>
-                        <span className="text-white font-medium">{selectedTeam.leader_student_id}</span>
+                      <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                        <span className="text-muted-foreground text-xs sm:text-sm">Student ID:</span>
+                        <span className="text-white font-medium text-sm">{selectedTeam.leader_student_id}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Department:</span>
-                        <span className="text-white font-medium">{selectedTeam.department}</span>
+                      <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                        <span className="text-muted-foreground text-xs sm:text-sm">Department:</span>
+                        <span className="text-white font-medium text-sm">{selectedTeam.department}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Nationality:</span>
-                        <span className="text-white font-medium">{selectedTeam.nationality}</span>
+                      <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                        <span className="text-muted-foreground text-xs sm:text-sm">Nationality:</span>
+                        <span className="text-white font-medium text-sm">{selectedTeam.nationality}</span>
                       </div>
                     </div>
                   </div>
@@ -840,24 +844,24 @@ export default function AdminPanel() {
           {activeTab === 'submissions' && (
             <Card className="bg-card/80 backdrop-blur-xl border border-border/50 overflow-hidden shadow-lg">
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full min-w-[500px]">
                     <thead className="bg-background/50 border-b border-border/50">
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-white">Team Name</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-white">Submitted</th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-white">Status</th>
-                        <th className="px-6 py-4 text-right text-sm font-semibold text-white">Action</th>
+                        <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Team Name</th>
+                        <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Submitted</th>
+                        <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Status</th>
+                        <th className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-semibold text-white">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/30">
                       {filteredSubmissions.map(item => (
                         <tr key={item.teamId} className="hover:bg-accent/5 transition-colors">
-                          <td className="px-6 py-4 text-white font-medium">{item.teamName}</td>
-                          <td className="px-6 py-4 text-muted-foreground text-sm">
+                          <td className="px-3 sm:px-6 py-3 sm:py-4 text-white font-medium text-sm">{item.teamName}</td>
+                          <td className="px-3 sm:px-6 py-3 sm:py-4 text-muted-foreground text-xs sm:text-sm">
                             {item.submittedAt || '-'}
                           </td>
-                          <td className="px-6 py-4">
-                            <span className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                          <td className="px-3 sm:px-6 py-3 sm:py-4">
+                            <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold border ${
                               item.hasSubmission 
                                 ? 'bg-green-500/10 text-green-300 border-green-500/30' 
                                 : 'bg-amber-500/10 text-amber-300 border-amber-500/30'
@@ -865,26 +869,26 @@ export default function AdminPanel() {
                               {item.hasSubmission ? 'Submitted' : 'Pending'}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-right">
+                          <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
                             {item.hasSubmission && item.submission ? (
                               <Button 
                                 size="sm" 
                                 variant="outline" 
-                                className="border-accent/30 text-accent hover:bg-accent/10 hover:border-accent/50 bg-transparent transition-all gap-1"
+                                className="border-accent/30 text-accent hover:bg-accent/10 hover:border-accent/50 bg-transparent transition-all gap-1 text-xs sm:text-sm"
                                 onClick={() => setSelectedSubmission(item)}
                               >
-                                <Eye className="w-4 h-4" />
-                                View
+                                <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                <span className="hidden sm:inline">View</span>
                               </Button>
                             ) : (
-                              <span className="text-muted-foreground text-sm">-</span>
+                              <span className="text-muted-foreground text-xs sm:text-sm">-</span>
                             )}
                           </td>
                         </tr>
                       ))}
                       {filteredSubmissions.length === 0 && (
                         <tr>
-                          <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground">
+                          <td colSpan={4} className="px-3 sm:px-6 py-6 sm:py-8 text-center text-muted-foreground text-sm">
                             No submissions found
                           </td>
                         </tr>
@@ -897,11 +901,11 @@ export default function AdminPanel() {
 
           {/* Submission Details Modal */}
           {selectedSubmission && selectedSubmission.submission && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedSubmission(null)}>
-              <Card className="bg-card/95 backdrop-blur-xl border border-border/50 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-                <div className="p-6 border-b border-border/50 flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-accent" />
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4" onClick={() => setSelectedSubmission(null)}>
+              <Card className="bg-card/95 backdrop-blur-xl border border-border/50 shadow-2xl max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                <div className="p-4 sm:p-6 border-b border-border/50 flex items-center justify-between sticky top-0 bg-card/95 backdrop-blur-xl z-10">
+                  <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
                     Submission Details
                   </h2>
                   <Button 
@@ -914,31 +918,32 @@ export default function AdminPanel() {
                   </Button>
                 </div>
                 
-                <div className="p-6 space-y-6">
+                <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                   {/* Team Name */}
-                  <div className="text-center pb-4 border-b border-border/30">
-                    <h3 className="text-2xl font-bold text-white">{selectedSubmission.teamName}</h3>
-                    <p className="text-muted-foreground text-sm mt-1">Submitted on {selectedSubmission.submittedAt}</p>
+                  <div className="text-center pb-3 sm:pb-4 border-b border-border/30">
+                    <h3 className="text-xl sm:text-2xl font-bold text-white break-words">{selectedSubmission.teamName}</h3>
+                    <p className="text-muted-foreground text-xs sm:text-sm mt-1">Submitted on {selectedSubmission.submittedAt}</p>
                   </div>
                   
                   {/* Submission Links */}
-                  <div className="space-y-4">
-                    <h4 className="text-sm font-semibold text-accent uppercase tracking-wider">Submission Files</h4>
+                  <div className="space-y-3 sm:space-y-4">
+                    <h4 className="text-xs sm:text-sm font-semibold text-accent uppercase tracking-wider">Submission Files</h4>
                     
                     {/* Requirement Analysis */}
-                    <div className="bg-background/50 rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-white font-medium">Requirement Analysis</p>
-                          <p className="text-muted-foreground text-xs mt-1 truncate max-w-[300px]">{selectedSubmission.submission.requirement_analysis_link}</p>
+                    <div className="bg-background/50 rounded-lg p-3 sm:p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-white font-medium text-sm">Requirement Analysis</p>
+                          <p className="text-muted-foreground text-[10px] sm:text-xs mt-1 truncate">{selectedSubmission.submission.requirement_analysis_link}</p>
                         </div>
                         <a 
                           href={selectedSubmission.submission.requirement_analysis_link} 
                           target="_blank" 
                           rel="noopener noreferrer"
+                          className="flex-shrink-0"
                         >
-                          <Button size="sm" variant="outline" className="border-accent/30 text-accent hover:bg-accent/10 gap-2">
-                            <Download className="w-4 h-4" />
+                          <Button size="sm" variant="outline" className="border-accent/30 text-accent hover:bg-accent/10 gap-2 text-xs sm:text-sm w-full sm:w-auto">
+                            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             Open
                           </Button>
                         </a>
@@ -946,19 +951,20 @@ export default function AdminPanel() {
                     </div>
                     
                     {/* Stack Report */}
-                    <div className="bg-background/50 rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-white font-medium">Stack Report</p>
-                          <p className="text-muted-foreground text-xs mt-1 truncate max-w-[300px]">{selectedSubmission.submission.stack_report_link}</p>
+                    <div className="bg-background/50 rounded-lg p-3 sm:p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-white font-medium text-sm">Stack Report</p>
+                          <p className="text-muted-foreground text-[10px] sm:text-xs mt-1 truncate">{selectedSubmission.submission.stack_report_link}</p>
                         </div>
                         <a 
                           href={selectedSubmission.submission.stack_report_link} 
                           target="_blank" 
                           rel="noopener noreferrer"
+                          className="flex-shrink-0"
                         >
-                          <Button size="sm" variant="outline" className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10 gap-2">
-                            <Download className="w-4 h-4" />
+                          <Button size="sm" variant="outline" className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10 gap-2 text-xs sm:text-sm w-full sm:w-auto">
+                            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             Open
                           </Button>
                         </a>
@@ -966,19 +972,20 @@ export default function AdminPanel() {
                     </div>
                     
                     {/* Dependencies & Docs */}
-                    <div className="bg-background/50 rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-white font-medium">Dependencies & Documentation</p>
-                          <p className="text-muted-foreground text-xs mt-1 truncate max-w-[300px]">{selectedSubmission.submission.dependencies_docs_link}</p>
+                    <div className="bg-background/50 rounded-lg p-3 sm:p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-white font-medium text-sm">Dependencies & Documentation</p>
+                          <p className="text-muted-foreground text-[10px] sm:text-xs mt-1 truncate">{selectedSubmission.submission.dependencies_docs_link}</p>
                         </div>
                         <a 
                           href={selectedSubmission.submission.dependencies_docs_link} 
                           target="_blank" 
                           rel="noopener noreferrer"
+                          className="flex-shrink-0"
                         >
-                          <Button size="sm" variant="outline" className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10 gap-2">
-                            <Download className="w-4 h-4" />
+                          <Button size="sm" variant="outline" className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10 gap-2 text-xs sm:text-sm w-full sm:w-auto">
+                            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             Open
                           </Button>
                         </a>
@@ -986,19 +993,20 @@ export default function AdminPanel() {
                     </div>
                     
                     {/* GitHub Repository */}
-                    <div className="bg-background/50 rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-white font-medium">GitHub Repository</p>
-                          <p className="text-muted-foreground text-xs mt-1 truncate max-w-[300px]">{selectedSubmission.submission.github_link}</p>
+                    <div className="bg-background/50 rounded-lg p-3 sm:p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-white font-medium text-sm">GitHub Repository</p>
+                          <p className="text-muted-foreground text-[10px] sm:text-xs mt-1 truncate">{selectedSubmission.submission.github_link}</p>
                         </div>
                         <a 
                           href={selectedSubmission.submission.github_link} 
                           target="_blank" 
                           rel="noopener noreferrer"
+                          className="flex-shrink-0"
                         >
-                          <Button size="sm" variant="outline" className="border-green-500/30 text-green-400 hover:bg-green-500/10 gap-2">
-                            <Download className="w-4 h-4" />
+                          <Button size="sm" variant="outline" className="border-green-500/30 text-green-400 hover:bg-green-500/10 gap-2 text-xs sm:text-sm w-full sm:w-auto">
+                            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             Open
                           </Button>
                         </a>
@@ -1014,24 +1022,24 @@ export default function AdminPanel() {
           {activeTab === 'verification' && (
             <Card className="bg-card/80 backdrop-blur-xl border border-border/50 overflow-hidden shadow-lg">
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[480px]">
+                <table className="w-full min-w-[520px]">
                   <thead className="bg-background/50 border-b border-border/50">
                     <tr>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Team Name</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Transaction ID</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Registered</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-white">Status</th>
-                      <th className="px-6 py-4 text-right text-sm font-semibold text-white">Action</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Team Name</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Transaction ID</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Registered</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Status</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-semibold text-white">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/30">
                     {filteredVerification.map(item => (
                       <tr key={item.id} className="hover:bg-accent/5 transition-colors">
-                        <td className="px-6 py-4 text-white font-medium">{item.teamName}</td>
-                        <td className="px-6 py-4 text-muted-foreground text-sm font-mono">{item.transactionId}</td>
-                        <td className="px-6 py-4 text-muted-foreground text-sm">{item.submittedAt}</td>
-                        <td className="px-6 py-4">
-                          <span className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-white font-medium text-sm">{item.teamName}</td>
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-muted-foreground text-xs sm:text-sm font-mono">{item.transactionId}</td>
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-muted-foreground text-xs sm:text-sm">{item.submittedAt}</td>
+                        <td className="px-3 sm:px-6 py-3 sm:py-4">
+                          <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold border ${
                             item.status === 'pending' ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' :
                             item.status === 'approved' ? 'bg-green-500/10 text-green-300 border-green-500/30' :
                             'bg-red-500/10 text-red-300 border-red-500/30'
@@ -1039,28 +1047,28 @@ export default function AdminPanel() {
                             {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-right flex justify-end gap-2">
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-right flex justify-end gap-1 sm:gap-2">
                           {item.status === 'pending' ? (
                             <>
                               <Button 
                                 size="sm" 
                                 variant="outline" 
-                                className="border-green-500/30 text-green-400 hover:bg-green-500/10 hover:border-green-500/50 bg-transparent transition-all"
+                                className="border-green-500/30 text-green-400 hover:bg-green-500/10 hover:border-green-500/50 bg-transparent transition-all p-1.5 sm:p-2"
                                 onClick={() => openConfirmDialog('approve', item.teamId, item.teamName)}
                               >
-                                <Check className="w-4 h-4" />
+                                <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                               </Button>
                               <Button 
                                 size="sm" 
                                 variant="outline" 
-                                className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50 bg-transparent transition-all"
+                                className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50 bg-transparent transition-all p-1.5 sm:p-2"
                                 onClick={() => openConfirmDialog('reject', item.teamId, item.teamName)}
                               >
-                                <X className="w-4 h-4" />
+                                <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                               </Button>
                             </>
                           ) : (
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-[10px] sm:text-xs text-muted-foreground">
                               {item.status === 'approved' ? 'Verified' : 'Rejected'}
                             </span>
                           )}
@@ -1077,7 +1085,7 @@ export default function AdminPanel() {
 
       {/* Confirmation Dialog */}
       {confirmDialog.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
           {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
@@ -1085,30 +1093,30 @@ export default function AdminPanel() {
           />
           
           {/* Dialog */}
-          <Card className="relative bg-card border border-border/50 p-6 w-full max-w-md mx-4 shadow-2xl">
-            <div className="space-y-6">
+          <Card className="relative bg-card border border-border/50 p-4 sm:p-6 w-full max-w-md mx-2 sm:mx-4 shadow-2xl">
+            <div className="space-y-4 sm:space-y-6">
               {/* Icon */}
               <div className="flex justify-center">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center ${
                   confirmDialog.action === 'approve' 
                     ? 'bg-green-500/10 border-2 border-green-500/30' 
                     : 'bg-red-500/10 border-2 border-red-500/30'
                 }`}>
                   {confirmDialog.action === 'approve' ? (
-                    <Check className="w-8 h-8 text-green-500" />
+                    <Check className="w-6 h-6 sm:w-8 sm:h-8 text-green-500" />
                   ) : (
-                    <AlertTriangle className="w-8 h-8 text-red-500" />
+                    <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 text-red-500" />
                   )}
                 </div>
               </div>
               
               {/* Content */}
               <div className="text-center space-y-2">
-                <h3 className="text-xl font-semibold text-white">
+                <h3 className="text-lg sm:text-xl font-semibold text-white">
                   {confirmDialog.action === 'approve' ? 'Approve Payment' : 'Reject Payment'}
                 </h3>
-                <p className="text-muted-foreground">
-                  Are you sure you want to {confirmDialog.action === 'approve' ? 'approve' : 'reject'} the payment for team <span className="text-white font-medium">"{confirmDialog.teamName}"</span>?
+                <p className="text-muted-foreground text-sm">
+                  Are you sure you want to {confirmDialog.action === 'approve' ? 'approve' : 'reject'} the payment for team <span className="text-white font-medium break-words">"{confirmDialog.teamName}"</span>?
                 </p>
                 {confirmDialog.action === 'reject' && (
                   <p className="text-red-400 text-sm">
