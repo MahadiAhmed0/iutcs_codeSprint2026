@@ -436,10 +436,7 @@ export default function AdminPanel() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Header */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-accent" />
-            <span className="text-accent font-medium">Admin Panel</span>
-          </div>
+          
           <h1 className="text-4xl font-bold">
             <span className="bg-gradient-to-r from-white via-white to-accent bg-clip-text text-transparent">
               Admin Dashboard
@@ -511,10 +508,12 @@ export default function AdminPanel() {
                 <div className="w-14 h-14 bg-gradient-to-br from-blue-500/20 to-blue-500/5 rounded-2xl flex items-center justify-center border border-blue-500/30 shadow-lg shadow-blue-500/10 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
                   <Shield className="w-7 h-7 text-blue-500" />
                 </div>
-                <div className="flex items-center gap-1 px-2 py-1 bg-blue-500/10 rounded-full border border-blue-500/20">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                  <span className="text-[10px] text-blue-400 font-medium">PENDING</span>
-                </div>
+                {stats.pendingVerifications > 0 && (
+                  <div className="flex items-center gap-1 px-2 py-1 bg-blue-500/10 rounded-full border border-blue-500/20">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <span className="text-[10px] text-blue-400 font-medium">ACTION</span>
+                  </div>
+                )}
               </div>
               <div>
                 <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider mb-1">Pending Verification</p>
