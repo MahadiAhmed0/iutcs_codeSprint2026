@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { LogOut, Search, Eye, Check, X, Filter, ChevronDown, Users, FileText, CheckCircle, Shield, Sparkles, AlertTriangle, Loader2, Download } from 'lucide-react';
+import { LogOut, Search, Eye, Check, X, Filter, ChevronDown, Users, FileText, CheckCircle, Shield, Sparkles, AlertTriangle, Loader2, Download, DollarSign } from 'lucide-react';
 import { ScrollToTop } from '@/components/scroll-to-top';
 import { useAuth } from '@/contexts/auth-context';
 import { createClient } from '@/lib/supabase/client';
@@ -76,6 +76,9 @@ export default function AdminPanel() {
   
   // Selected team for viewing details
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  
+  // Selected submission for viewing details
+  const [selectedSubmission, setSelectedSubmission] = useState<typeof teamsWithSubmissions[0] | null>(null);
 
   // Check admin access - wait for auth to load, then check
   useEffect(() => {
@@ -218,7 +221,10 @@ export default function AdminPanel() {
   const stats = {
     totalTeams: verifiedTeams.length,
     totalSubmissions: submissions.length,
+    pendingSubmissions: verifiedTeams.length - submissions.length,
     pendingVerifications: teams.filter(t => !t.payment_verified).length,
+    totalVerified: verifiedTeams.length,
+    totalRevenue: verifiedTeams.length * 300,
   };
 
   // Handle opening confirmation dialog
@@ -348,6 +354,44 @@ export default function AdminPanel() {
     URL.revokeObjectURL(url);
   };
 
+  // Download all teams information as CSV
+  const downloadAllTeams = () => {
+    if (verifiedTeams.length === 0) {
+      alert('No teams to download');
+      return;
+    }
+    
+    const headers = ['Team Name', 'Leader Name', 'Leader Email', 'Leader Phone', 'Leader Student ID', 'Department', 'Nationality', 'Transaction ID', 'Members Count', 'Member Names', 'Registered At'];
+    const rows = verifiedTeams.map(team => [
+      team.name,
+      team.leader_name,
+      team.leader_email,
+      team.leader_phone,
+      team.leader_student_id,
+      team.department,
+      team.nationality,
+      team.transaction_id,
+      (team.members?.length || 0) + 1,
+      team.members?.map(m => m.name).join('; ') || '',
+      new Date(team.created_at).toLocaleDateString()
+    ]);
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `all-teams-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="min-h-screen bg-background relative">
       {/* Animated Background */}
@@ -372,7 +416,6 @@ export default function AdminPanel() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-white">IUTCS</span>
               <span className="px-2 py-0.5 bg-accent/20 text-accent text-xs rounded-full border border-accent/30">Admin</span>
             </div>
           </div>
@@ -406,45 +449,131 @@ export default function AdminPanel() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-6 shadow-lg relative overflow-hidden group hover:border-accent/30 transition-all">
-            <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm">Total Teams</p>
-                <p className="text-3xl font-bold text-white mt-2">{stats.totalTeams}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          {/* Verified Teams Card */}
+          <Card className="bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-xl border border-border/50 p-6 shadow-xl relative overflow-hidden group hover:border-accent/50 hover:shadow-accent/10 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="absolute -top-12 -right-12 w-32 h-32 bg-accent/10 rounded-full blur-2xl group-hover:bg-accent/20 transition-colors duration-300"></div>
+            <div className="relative">
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-accent/20 to-accent/5 rounded-2xl flex items-center justify-center border border-accent/30 shadow-lg shadow-accent/10 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                  <Users className="w-7 h-7 text-accent" />
+                </div>
+                <div className="flex items-center gap-1 px-2 py-1 bg-accent/10 rounded-full border border-accent/20">
+                  <div className="w-2 h-2 bg-accent rounded-full animate-pulse"></div>
+                  <span className="text-[10px] text-accent font-medium">LIVE</span>
+                </div>
               </div>
-              <div className="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center border border-accent/20 group-hover:scale-110 transition-transform">
-                <Users className="w-7 h-7 text-accent" />
+              <div>
+                <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider mb-1">Verified Teams</p>
+                <p className="text-3xl font-bold text-white tracking-tight">{stats.totalVerified}</p>
+                <p className="text-xs text-accent/80 mt-2 flex items-center gap-1">
+                  <CheckCircle className="w-3 h-3" />
+                  Payment confirmed
+                </p>
               </div>
             </div>
           </Card>
 
-          <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-6 shadow-lg relative overflow-hidden group hover:border-amber-500/30 transition-all">
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm">Pending Submissions</p>
-                <p className="text-3xl font-bold text-white mt-2">{stats.totalSubmissions}</p>
+          {/* Pending Submissions Card */}
+          <Card className="bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-xl border border-border/50 p-6 shadow-xl relative overflow-hidden group hover:border-amber-500/50 hover:shadow-amber-500/10 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-colors duration-300"></div>
+            <div className="relative">
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-amber-500/20 to-amber-500/5 rounded-2xl flex items-center justify-center border border-amber-500/30 shadow-lg shadow-amber-500/10 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                  <FileText className="w-7 h-7 text-amber-500" />
+                </div>
+                {stats.pendingSubmissions > 0 && (
+                  <div className="flex items-center gap-1 px-2 py-1 bg-amber-500/10 rounded-full border border-amber-500/20">
+                    <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                    <span className="text-[10px] text-amber-400 font-medium">PENDING</span>
+                  </div>
+                )}
               </div>
-              <div className="w-14 h-14 bg-amber-500/10 rounded-xl flex items-center justify-center border border-amber-500/20 group-hover:scale-110 transition-transform">
-                <FileText className="w-7 h-7 text-amber-500" />
+              <div>
+                <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider mb-1">Pending Submissions</p>
+                <p className="text-3xl font-bold text-white tracking-tight">{stats.pendingSubmissions}</p>
+                <p className="text-xs text-amber-400/80 mt-2 flex items-center gap-1">
+                  <AlertTriangle className="w-3 h-3" />
+                  Awaiting from teams
+                </p>
               </div>
             </div>
           </Card>
 
-          <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-6 shadow-lg relative overflow-hidden group hover:border-blue-500/30 transition-all">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative flex items-center justify-between">
-              <div>
-                <p className="text-muted-foreground text-sm">Pending Payment Verification</p>
-                <p className="text-3xl font-bold text-white mt-2">{stats.pendingVerifications}</p>
+          {/* Pending Verification Card */}
+          <Card className="bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-xl border border-border/50 p-6 shadow-xl relative overflow-hidden group hover:border-blue-500/50 hover:shadow-blue-500/10 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="absolute -top-12 -right-12 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-colors duration-300"></div>
+            <div className="relative">
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-500/20 to-blue-500/5 rounded-2xl flex items-center justify-center border border-blue-500/30 shadow-lg shadow-blue-500/10 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                  <Shield className="w-7 h-7 text-blue-500" />
+                </div>
+                <div className="flex items-center gap-1 px-2 py-1 bg-blue-500/10 rounded-full border border-blue-500/20">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  <span className="text-[10px] text-blue-400 font-medium">PENDING</span>
+                </div>
               </div>
-              <div className="w-14 h-14 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 group-hover:scale-110 transition-transform">
-                <CheckCircle className="w-7 h-7 text-blue-500" />
+              <div>
+                <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider mb-1">Pending Verification</p>
+                
+                <p className="text-3xl font-bold text-white tracking-tight">{stats.pendingVerifications}</p>
+                <p className="text-xs text-blue-400/80 mt-2 flex items-center gap-1">
+              
+                  <Eye className="w-3 h-3" />
+                  Needs review
+                </p>
               </div>
             </div>
           </Card>
+
+          {/* Total Revenue Card */}
+          <Card className="bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-xl border border-border/50 p-6 shadow-xl relative overflow-hidden group hover:border-green-500/50 hover:shadow-green-500/10 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="absolute -top-12 -right-12 w-32 h-32 bg-green-500/10 rounded-full blur-2xl group-hover:bg-green-500/20 transition-colors duration-300"></div>
+            <div className="relative">
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-green-500/20 to-green-500/5 rounded-2xl flex items-center justify-center border border-green-500/30 shadow-lg shadow-green-500/10 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                  <span className="text-2xl font-bold text-green-500">৳</span>
+                </div>
+                <div className="flex items-center gap-1 px-2 py-1 bg-green-500/10 rounded-full border border-green-500/20">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-[10px] text-green-400 font-medium">EARNED</span>
+                </div>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider mb-1">Total Revenue</p>
+                <p className="text-3xl font-bold text-white tracking-tight">৳{stats.totalRevenue.toLocaleString()}</p>
+                <p className="text-xs text-green-400/80 mt-2">
+                  {stats.totalVerified} teams × ৳300 each
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Download All Teams Button */}
+        <div className="flex justify-end gap-3">
+          <Button 
+            onClick={downloadAllSubmissions}
+            variant="outline"
+            className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/50 bg-transparent gap-2"
+            disabled={submissions.length === 0}
+          >
+            <Download className="w-4 h-4" />
+            Download All Submissions (CSV)
+          </Button>
+          <Button 
+            onClick={downloadAllTeams}
+            variant="outline"
+            className="border-accent/30 text-accent hover:bg-accent/10 hover:border-accent/50 bg-transparent gap-2"
+            disabled={verifiedTeams.length === 0}
+          >
+            <Download className="w-4 h-4" />
+            Download All Teams (CSV)
+          </Button>
         </div>
 
         {/* Tabs */}
@@ -710,20 +839,7 @@ export default function AdminPanel() {
 
           {/* Submissions Tab */}
           {activeTab === 'submissions' && (
-            <div className="space-y-4">
-              {/* Download All Button */}
-              <div className="flex justify-end">
-                <Button 
-                  onClick={downloadAllSubmissions}
-                  className="bg-accent hover:bg-accent/90 text-white gap-2"
-                  disabled={submissions.length === 0}
-                >
-                  <Download className="w-4 h-4" />
-                  Download All Submissions (CSV)
-                </Button>
-              </div>
-              
-              <Card className="bg-card/80 backdrop-blur-xl border border-border/50 overflow-hidden shadow-lg">
+            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 overflow-hidden shadow-lg">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-background/50 border-b border-border/50">
@@ -731,7 +847,7 @@ export default function AdminPanel() {
                         <th className="px-6 py-4 text-left text-sm font-semibold text-white">Team Name</th>
                         <th className="px-6 py-4 text-left text-sm font-semibold text-white">Submitted</th>
                         <th className="px-6 py-4 text-left text-sm font-semibold text-white">Status</th>
-                        <th className="px-6 py-4 text-center text-sm font-semibold text-white">Download</th>
+                        <th className="px-6 py-4 text-right text-sm font-semibold text-white">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/30">
@@ -750,21 +866,19 @@ export default function AdminPanel() {
                               {item.hasSubmission ? 'Submitted' : 'Pending'}
                             </span>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-4 text-right">
                             {item.hasSubmission && item.submission ? (
-                              <div className="flex justify-center">
-                                <Button 
-                                  size="sm" 
-                                  variant="outline" 
-                                  className="border-accent/30 text-accent hover:bg-accent/10 hover:border-accent/50 bg-transparent transition-all gap-2"
-                                  onClick={() => downloadTeamSubmission(item)}
-                                >
-                                  <Download className="w-4 h-4" />
-                                  Download
-                                </Button>
-                              </div>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="border-accent/30 text-accent hover:bg-accent/10 hover:border-accent/50 bg-transparent transition-all gap-1"
+                                onClick={() => setSelectedSubmission(item)}
+                              >
+                                <Eye className="w-4 h-4" />
+                                View
+                              </Button>
                             ) : (
-                              <div className="text-center text-muted-foreground text-sm">-</div>
+                              <span className="text-muted-foreground text-sm">-</span>
                             )}
                           </td>
                         </tr>
@@ -778,6 +892,120 @@ export default function AdminPanel() {
                       )}
                     </tbody>
                   </table>
+                </div>
+              </Card>
+          )}
+
+          {/* Submission Details Modal */}
+          {selectedSubmission && selectedSubmission.submission && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedSubmission(null)}>
+              <Card className="bg-card/95 backdrop-blur-xl border border-border/50 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                <div className="p-6 border-b border-border/50 flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-accent" />
+                    Submission Details
+                  </h2>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setSelectedSubmission(null)}
+                    className="text-muted-foreground hover:text-white"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+                
+                <div className="p-6 space-y-6">
+                  {/* Team Name */}
+                  <div className="text-center pb-4 border-b border-border/30">
+                    <h3 className="text-2xl font-bold text-white">{selectedSubmission.teamName}</h3>
+                    <p className="text-muted-foreground text-sm mt-1">Submitted on {selectedSubmission.submittedAt}</p>
+                  </div>
+                  
+                  {/* Submission Links */}
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-semibold text-accent uppercase tracking-wider">Submission Files</h4>
+                    
+                    {/* Requirement Analysis */}
+                    <div className="bg-background/50 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-white font-medium">Requirement Analysis</p>
+                          <p className="text-muted-foreground text-xs mt-1 truncate max-w-[300px]">{selectedSubmission.submission.requirement_analysis_link}</p>
+                        </div>
+                        <a 
+                          href={selectedSubmission.submission.requirement_analysis_link} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          <Button size="sm" variant="outline" className="border-accent/30 text-accent hover:bg-accent/10 gap-2">
+                            <Download className="w-4 h-4" />
+                            Open
+                          </Button>
+                        </a>
+                      </div>
+                    </div>
+                    
+                    {/* Stack Report */}
+                    <div className="bg-background/50 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-white font-medium">Stack Report</p>
+                          <p className="text-muted-foreground text-xs mt-1 truncate max-w-[300px]">{selectedSubmission.submission.stack_report_link}</p>
+                        </div>
+                        <a 
+                          href={selectedSubmission.submission.stack_report_link} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          <Button size="sm" variant="outline" className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10 gap-2">
+                            <Download className="w-4 h-4" />
+                            Open
+                          </Button>
+                        </a>
+                      </div>
+                    </div>
+                    
+                    {/* Dependencies & Docs */}
+                    <div className="bg-background/50 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-white font-medium">Dependencies & Documentation</p>
+                          <p className="text-muted-foreground text-xs mt-1 truncate max-w-[300px]">{selectedSubmission.submission.dependencies_docs_link}</p>
+                        </div>
+                        <a 
+                          href={selectedSubmission.submission.dependencies_docs_link} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          <Button size="sm" variant="outline" className="border-purple-500/30 text-purple-400 hover:bg-purple-500/10 gap-2">
+                            <Download className="w-4 h-4" />
+                            Open
+                          </Button>
+                        </a>
+                      </div>
+                    </div>
+                    
+                    {/* GitHub Repository */}
+                    <div className="bg-background/50 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-white font-medium">GitHub Repository</p>
+                          <p className="text-muted-foreground text-xs mt-1 truncate max-w-[300px]">{selectedSubmission.submission.github_link}</p>
+                        </div>
+                        <a 
+                          href={selectedSubmission.submission.github_link} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          <Button size="sm" variant="outline" className="border-green-500/30 text-green-400 hover:bg-green-500/10 gap-2">
+                            <Download className="w-4 h-4" />
+                            Open
+                          </Button>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </Card>
             </div>
