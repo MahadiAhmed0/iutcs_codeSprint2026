@@ -39,6 +39,7 @@ CREATE TABLE public.teams (
   nationality TEXT DEFAULT 'Bangladesh',
   transaction_id TEXT NOT NULL,
   payment_status TEXT DEFAULT 'pending' CHECK (payment_status IN ('pending', 'approved', 'rejected')),
+  competition_type TEXT DEFAULT 'ai_api' CHECK (competition_type IN ('ai_api', 'devops', 'both')),
   members JSONB DEFAULT '[]',
   submission_status TEXT DEFAULT 'pending' CHECK (submission_status IN ('pending', 'submitted', 'approved', 'rejected')),
   submission_date TIMESTAMPTZ,

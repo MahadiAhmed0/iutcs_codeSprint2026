@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Plus, Trash2, CheckCircle, Users, User, Sparkles, Rocket, Wallet, AlertCircle, LogOut, Globe } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, CheckCircle, Users, User, Sparkles, Rocket, Wallet, AlertCircle, LogOut, Globe, Code2, Server, Info } from 'lucide-react';
 import { ScrollToTop } from '@/components/scroll-to-top';
 import { useAuth } from '@/contexts/auth-context';
 import { createClient } from '@/lib/supabase/client';
@@ -190,7 +190,9 @@ export default function TeamRegistrationPage() {
   const router = useRouter();
   const supabase = createClient();
   
-  const [step, setStep] = useState<'form' | 'success'>('form');
+  const [step, setStep] = useState<'competition' | 'form' | 'success'>('competition');
+  const [competitionType, setCompetitionType] = useState<'ai_api' | 'devops' | 'both' | null>(null);
+  const [devopsOnly, setDevopsOnly] = useState(false);
   const [formData, setFormData] = useState({
     teamName: '',
     leaderName: '',
@@ -501,6 +503,7 @@ export default function TeamRegistrationPage() {
           nationality: formData.nationality,
           transaction_id: formData.transactionId,
           payment_status: 'pending',
+          competition_type: competitionType || 'ai_api',
           members: teamMembers.filter(m => m.name.trim() !== '').map(m => ({
             name: m.name.trim(),
             studentId: m.studentId.trim(),
@@ -616,6 +619,11 @@ export default function TeamRegistrationPage() {
             <div className="relative space-y-2">
               <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-green-400 bg-clip-text text-transparent">Registration Complete!</h1>
               <p className="text-muted-foreground">Your team has been successfully registered</p>
+              {competitionType === 'both' && (
+                <div className="mt-3 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                  <p className="text-xs text-amber-300"><Info className="w-3 h-3 inline mr-1" />DevOps registration will open soon. You&apos;ll be notified when it starts.</p>
+                </div>
+              )}
             </div>
 
             <div className="relative space-y-3 pt-4">
@@ -646,15 +654,165 @@ export default function TeamRegistrationPage() {
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]"></div>
       </div>
 
+      {/* DevOps Only Message */}
+      {devopsOnly && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setDevopsOnly(false)}>
+          <Card className="bg-card/95 backdrop-blur-xl border border-border/50 shadow-2xl max-w-md w-full p-6 sm:p-8 text-center space-y-5" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-center">
+              <div className="relative">
+                <div className="absolute inset-0 bg-amber-500/30 rounded-full blur-xl animate-pulse"></div>
+                <div className="relative w-20 h-20 bg-gradient-to-br from-amber-500/20 to-amber-500/5 rounded-full flex items-center justify-center border-2 border-amber-500/50">
+                  <Server className="w-10 h-10 text-amber-500" />
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-amber-400 bg-clip-text text-transparent">Coming Soon!</h2>
+              <p className="text-muted-foreground text-sm">Registration for the DevOps competition hasn&apos;t started yet. Stay tuned for updates!</p>
+            </div>
+            <Button onClick={() => { setDevopsOnly(false); setCompetitionType(null); }} className="w-full bg-accent hover:bg-accent/90 text-white h-11">
+              Go Back
+            </Button>
+          </Card>
+        </div>
+      )}
+
+      {/* Competition Selection Step */}
+      {step === 'competition' && !devopsOnly && (
+        <div className="relative flex items-center justify-center min-h-screen px-4 py-8">
+          <div className="w-full max-w-2xl mx-auto">
+            <Link href="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors mb-6 group text-sm">
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              Back
+            </Link>
+
+            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-6 sm:p-8 space-y-6 shadow-2xl shadow-accent/5 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-primary/5 pointer-events-none"></div>
+
+              <div className="relative text-center space-y-3">
+                <div className="flex justify-center">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-accent/30 rounded-xl blur-lg animate-pulse"></div>
+                    <div className="relative w-14 h-14 bg-gradient-to-br from-accent/20 to-accent/5 rounded-xl flex items-center justify-center border border-accent/40 shadow-lg shadow-accent/20">
+                      <Sparkles className="w-7 h-7 text-accent" />
+                    </div>
+                  </div>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-white via-white to-accent bg-clip-text text-transparent">Choose Your Competition</h1>
+                <p className="text-muted-foreground text-sm">Select which competition(s) you want to participate in</p>
+              </div>
+
+              <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* AI & API Card */}
+                <button
+                  type="button"
+                  onClick={() => setCompetitionType(prev => {
+                    if (prev === 'ai_api') return null;
+                    if (prev === 'both') return 'devops';
+                    if (prev === 'devops') return 'both';
+                    return 'ai_api';
+                  })}
+                  className={`relative p-5 rounded-xl border-2 text-left transition-all duration-200 group ${
+                    competitionType === 'ai_api' || competitionType === 'both'
+                      ? 'border-accent bg-accent/10 shadow-lg shadow-accent/20'
+                      : 'border-border/50 bg-background/30 hover:border-accent/30 hover:bg-accent/5'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center border transition-all ${
+                      competitionType === 'ai_api' || competitionType === 'both'
+                        ? 'bg-accent/20 border-accent/50' : 'bg-background/50 border-border/50 group-hover:border-accent/30'
+                    }`}>
+                      <Code2 className={`w-5 h-5 ${competitionType === 'ai_api' || competitionType === 'both' ? 'text-accent' : 'text-muted-foreground'}`} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white">AI & API</h3>
+                      <p className="text-xs text-muted-foreground">Open for registration</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Build innovative solutions using AI models and APIs</p>
+                  {(competitionType === 'ai_api' || competitionType === 'both') && (
+                    <div className="absolute top-3 right-3"><CheckCircle className="w-5 h-5 text-accent" /></div>
+                  )}
+                  <div className="mt-3">
+                    <span className="px-2 py-0.5 bg-green-500/10 text-green-400 text-[10px] font-semibold rounded-full border border-green-500/30">OPEN</span>
+                  </div>
+                </button>
+
+                {/* DevOps Card */}
+                <button
+                  type="button"
+                  onClick={() => setCompetitionType(prev => {
+                    if (prev === 'devops') return null;
+                    if (prev === 'both') return 'ai_api';
+                    if (prev === 'ai_api') return 'both';
+                    return 'devops';
+                  })}
+                  className={`relative p-5 rounded-xl border-2 text-left transition-all duration-200 group ${
+                    competitionType === 'devops' || competitionType === 'both'
+                      ? 'border-purple-500 bg-purple-500/10 shadow-lg shadow-purple-500/20'
+                      : 'border-border/50 bg-background/30 hover:border-purple-500/30 hover:bg-purple-500/5'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center border transition-all ${
+                      competitionType === 'devops' || competitionType === 'both'
+                        ? 'bg-purple-500/20 border-purple-500/50' : 'bg-background/50 border-border/50 group-hover:border-purple-500/30'
+                    }`}>
+                      <Server className={`w-5 h-5 ${competitionType === 'devops' || competitionType === 'both' ? 'text-purple-400' : 'text-muted-foreground'}`} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white">DevOps</h3>
+                      <p className="text-xs text-muted-foreground">Coming soon</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Infrastructure, CI/CD, and cloud deployment challenges</p>
+                  {(competitionType === 'devops' || competitionType === 'both') && (
+                    <div className="absolute top-3 right-3"><CheckCircle className="w-5 h-5 text-purple-400" /></div>
+                  )}
+                  <div className="mt-3">
+                    <span className="px-2 py-0.5 bg-amber-500/10 text-amber-400 text-[10px] font-semibold rounded-full border border-amber-500/30">COMING SOON</span>
+                  </div>
+                </button>
+              </div>
+
+              {competitionType === 'both' && (
+                <div className="relative flex items-start gap-2 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                  <Info className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-blue-300">You&apos;ll register and pay for AI & API now. DevOps registration will open separately — you&apos;ll be notified when it starts.</p>
+                </div>
+              )}
+
+              <div className="relative pt-2">
+                <Button
+                  onClick={() => {
+                    if (competitionType === 'devops') {
+                      setDevopsOnly(true);
+                    } else if (competitionType === 'ai_api' || competitionType === 'both') {
+                      setStep('form');
+                    }
+                  }}
+                  disabled={!competitionType}
+                  className="w-full bg-accent hover:bg-accent/90 text-white h-12 text-base font-semibold disabled:opacity-50 shadow-lg shadow-accent/25 hover:shadow-accent/40 hover:scale-[1.01] active:scale-[0.99] transition-all"
+                >
+                  Continue
+                </Button>
+              </div>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {step === 'form' && (
       <div className="relative py-6 sm:py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mx-auto">
-          <Link 
-            href="/"
+          <button
+            onClick={() => setStep('competition')}
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors mb-6 sm:mb-8 group text-sm sm:text-base"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             Back
-          </Link>
+          </button>
 
           <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-5 sm:p-8 space-y-6 sm:space-y-8 shadow-2xl shadow-accent/5 relative overflow-hidden">
             {/* Card glow effect */}
@@ -1023,13 +1181,16 @@ export default function TeamRegistrationPage() {
                 
                 <div className="bg-pink-500/5 border border-pink-500/20 rounded-xl p-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Registration Fee</span>
+                    <span className="text-sm text-muted-foreground">Registration Fee{competitionType === 'both' ? ' (AI & API only)' : ''}</span>
                     <span className="text-lg font-bold text-white">৳310</span>
                   </div>
                   <div className="text-sm text-muted-foreground space-y-1">
                     <p>Send <span className="text-pink-400 font-semibold">310 BDT</span> to the following bKash number:</p>
                     <p className="text-xl font-bold text-pink-400">01791751468</p>
                     <p className="text-xs">**Use your <span className="text-pink-400 font-semibold">TEAM NAME</span> as reference</p>
+                    {competitionType === 'both' && (
+                      <p className="text-xs text-amber-400 mt-2">⚠ This payment is for AI & API competition only. DevOps payment will be collected separately when registration opens.</p>
+                    )}
                   </div>
                 </div>
 
@@ -1081,6 +1242,7 @@ export default function TeamRegistrationPage() {
           </Card>
         </div>
       </div>
+      )}
 
       <ScrollToTop />
     </div>
