@@ -54,6 +54,7 @@ CREATE TABLE public.submissions (
   dependencies_docs_link TEXT NOT NULL,
   github_link TEXT NOT NULL,
   deployment_link TEXT,
+  demonstration_video_link TEXT,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
   submitted_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
