@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { LogOut, Search, Eye, Check, X, Filter, ChevronDown, Users, FileText, CheckCircle, Shield, Sparkles, AlertTriangle, Loader2, Download, DollarSign, Settings } from 'lucide-react';
+import { LogOut, Search, Eye, Check, X, Filter, ChevronDown, Users, FileText, CheckCircle, Shield, Sparkles, AlertTriangle, Loader2, Download, DollarSign, Settings, BookOpen } from 'lucide-react';
 import { ScrollToTop } from '@/components/scroll-to-top';
 import { useAuth } from '@/contexts/auth-context';
 import { createClient } from '@/lib/supabase/client';
@@ -74,6 +74,10 @@ export default function AdminPanel() {
   const [submissionDeadline, setSubmissionDeadline] = useState('');
   const [isTogglingSubmission, setIsTogglingSubmission] = useState(false);
   const [isSavingDeadline, setIsSavingDeadline] = useState(false);
+  const [rulebookLink, setRulebookLink] = useState('');
+  const [isRulebookPublished, setIsRulebookPublished] = useState(false);
+  const [isTogglingRulebook, setIsTogglingRulebook] = useState(false);
+  const [isSavingRulebookLink, setIsSavingRulebookLink] = useState(false);
   
   // Confirmation dialog state
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -182,6 +186,19 @@ export default function AdminPanel() {
         }
       };
       fetchSubmissionSettings();
+
+      // Fetch rulebook settings
+      const fetchRulebookSettings = async () => {
+        const { data } = await supabase
+          .from('rulebook')
+          .select('link, published')
+          .single();
+        if (data) {
+          setRulebookLink(data.link || '');
+          setIsRulebookPublished(data.published);
+        }
+      };
+      fetchRulebookSettings();
     }
   }, [profile, authLoading, supabase]);
 
@@ -224,6 +241,29 @@ export default function AdminPanel() {
       .update({ deadline: new Date(submissionDeadline).toISOString(), updated_at: new Date().toISOString(), updated_by: user?.id })
       .not('id', 'is', null);
     setIsSavingDeadline(false);
+  };
+
+  const toggleRulebookPublished = async () => {
+    setIsTogglingRulebook(true);
+    const newValue = !isRulebookPublished;
+    const { error } = await supabase
+      .from('rulebook')
+      .update({ published: newValue, updated_at: new Date().toISOString(), updated_by: user?.id })
+      .not('id', 'is', null);
+    if (!error) {
+      setIsRulebookPublished(newValue);
+    }
+    setIsTogglingRulebook(false);
+  };
+
+  const saveRulebookLink = async () => {
+    if (!rulebookLink) return;
+    setIsSavingRulebookLink(true);
+    const { error } = await supabase
+      .from('rulebook')
+      .update({ link: rulebookLink, updated_at: new Date().toISOString(), updated_by: user?.id })
+      .not('id', 'is', null);
+    setIsSavingRulebookLink(false);
   };
 
   // Loading state
@@ -1448,6 +1488,71 @@ export default function AdminPanel() {
                     <div className={`w-2.5 h-2.5 rounded-full ${isSubmissionOpen ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
                     <span className={`text-sm font-medium ${isSubmissionOpen ? 'text-green-400' : 'text-red-400'}`}>
                       {isSubmissionOpen ? 'Open' : 'Closed'}
+                    </span>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-5 sm:p-6 shadow-lg">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center border border-purple-500/20">
+                    <BookOpen className="w-5 h-5 text-purple-400" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-white">Rulebook Control</h2>
+                    <p className="text-xs text-muted-foreground">Manage rulebook link and visibility</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-background/50 rounded-xl border border-border/30">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-white">Publish Rulebook</p>
+                      <p className="text-xs text-muted-foreground">
+                        {isRulebookPublished
+                          ? 'Rulebook is visible to participants. Toggle off to hide it.'
+                          : 'Rulebook is hidden. Toggle on to make it available.'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={toggleRulebookPublished}
+                      disabled={isTogglingRulebook}
+                      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500/50 disabled:opacity-50 ${
+                        isRulebookPublished ? 'bg-green-500' : 'bg-muted-foreground/30'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform ${
+                          isRulebookPublished ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  <div className="p-4 bg-background/50 rounded-xl border border-border/30 space-y-3">
+                    <p className="text-sm font-medium text-white">Rulebook Link</p>
+                    <div className="flex gap-2">
+                      <Input
+                        type="url"
+                        placeholder="https://docs.google.com/..."
+                        value={rulebookLink}
+                        onChange={(e) => setRulebookLink(e.target.value)}
+                        className="flex-1 bg-background/60 border-border/60 text-white text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                      />
+                      <Button
+                        onClick={saveRulebookLink}
+                        disabled={isSavingRulebookLink || !rulebookLink}
+                        className="bg-purple-500 hover:bg-purple-500/90 text-white h-10 px-4 text-sm disabled:opacity-50"
+                      >
+                        {isSavingRulebookLink ? 'Saving...' : 'Save'}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2.5 h-2.5 rounded-full ${isRulebookPublished ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                    <span className={`text-sm font-medium ${isRulebookPublished ? 'text-green-400' : 'text-red-400'}`}>
+                      {isRulebookPublished ? 'Published' : 'Hidden'}
                     </span>
                   </div>
                 </div>
