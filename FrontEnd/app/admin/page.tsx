@@ -68,6 +68,10 @@ export default function AdminPanel() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(true);
   const [isTogglingRegistration, setIsTogglingRegistration] = useState(false);
+  const [isSubmissionOpen, setIsSubmissionOpen] = useState(true);
+  const [submissionDeadline, setSubmissionDeadline] = useState('');
+  const [isTogglingSubmission, setIsTogglingSubmission] = useState(false);
+  const [isSavingDeadline, setIsSavingDeadline] = useState(false);
   
   // Confirmation dialog state
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -158,6 +162,24 @@ export default function AdminPanel() {
         if (data) setIsRegistrationOpen(data.is_registration_open);
       };
       fetchRegistrationSettings();
+
+      // Fetch submission settings
+      const fetchSubmissionSettings = async () => {
+        const { data } = await supabase
+          .from('submission_settings')
+          .select('is_submission_open, deadline')
+          .single();
+        if (data) {
+          setIsSubmissionOpen(data.is_submission_open);
+          if (data.deadline) {
+            // Format to local datetime-local input value
+            const d = new Date(data.deadline);
+            const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            setSubmissionDeadline(local);
+          }
+        }
+      };
+      fetchSubmissionSettings();
     }
   }, [profile, authLoading, supabase]);
 
@@ -177,6 +199,29 @@ export default function AdminPanel() {
       setIsRegistrationOpen(newValue);
     }
     setIsTogglingRegistration(false);
+  };
+
+  const toggleSubmission = async () => {
+    setIsTogglingSubmission(true);
+    const newValue = !isSubmissionOpen;
+    const { error } = await supabase
+      .from('submission_settings')
+      .update({ is_submission_open: newValue, updated_at: new Date().toISOString(), updated_by: user?.id })
+      .not('id', 'is', null);
+    if (!error) {
+      setIsSubmissionOpen(newValue);
+    }
+    setIsTogglingSubmission(false);
+  };
+
+  const saveDeadline = async () => {
+    if (!submissionDeadline) return;
+    setIsSavingDeadline(true);
+    const { error } = await supabase
+      .from('submission_settings')
+      .update({ deadline: new Date(submissionDeadline).toISOString(), updated_at: new Date().toISOString(), updated_by: user?.id })
+      .not('id', 'is', null);
+    setIsSavingDeadline(false);
   };
 
   // Loading state
@@ -1205,6 +1250,70 @@ export default function AdminPanel() {
                   <span className={`text-sm font-medium ${isRegistrationOpen ? 'text-green-400' : 'text-red-400'}`}>
                     {isRegistrationOpen ? 'Open' : 'Closed'}
                   </span>
+                </div>
+              </Card>
+
+              <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-5 sm:p-6 shadow-lg">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center border border-amber-500/20">
+                    <FileText className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-white">Submission Control</h2>
+                    <p className="text-xs text-muted-foreground">Manage project submissions</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-background/50 rounded-xl border border-border/30">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-white">Submission Status</p>
+                      <p className="text-xs text-muted-foreground">
+                        {isSubmissionOpen
+                          ? 'Teams can submit projects. Toggle off to close submissions.'
+                          : 'Submissions are closed. Teams cannot submit new projects.'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={toggleSubmission}
+                      disabled={isTogglingSubmission}
+                      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500/50 disabled:opacity-50 ${
+                        isSubmissionOpen ? 'bg-green-500' : 'bg-muted-foreground/30'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform ${
+                          isSubmissionOpen ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  <div className="p-4 bg-background/50 rounded-xl border border-border/30 space-y-3">
+                    <p className="text-sm font-medium text-white">Submission Deadline</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="datetime-local"
+                        value={submissionDeadline}
+                        onChange={(e) => setSubmissionDeadline(e.target.value)}
+                        className="flex-1 h-10 rounded-lg bg-background/60 border border-border/60 text-white text-sm px-3 focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none"
+                      />
+                      <Button
+                        onClick={saveDeadline}
+                        disabled={isSavingDeadline || !submissionDeadline}
+                        className="bg-amber-500 hover:bg-amber-500/90 text-white h-10 px-4 text-sm disabled:opacity-50"
+                      >
+                        {isSavingDeadline ? 'Saving...' : 'Save'}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2.5 h-2.5 rounded-full ${isSubmissionOpen ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                    <span className={`text-sm font-medium ${isSubmissionOpen ? 'text-green-400' : 'text-red-400'}`}>
+                      {isSubmissionOpen ? 'Open' : 'Closed'}
+                    </span>
+                  </div>
                 </div>
               </Card>
             </div>
