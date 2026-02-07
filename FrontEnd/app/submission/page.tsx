@@ -28,7 +28,7 @@ interface SubmissionSettings {
 }
 
 export default function SubmissionPage() {
-  const [step, setStep] = useState<'loading' | 'closed' | 'form' | 'success'>('loading');
+  const [step, setStep] = useState<'loading' | 'closed' | 'not_verified' | 'form' | 'success'>('loading');
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [existingSubmission, setExistingSubmission] = useState<SubmissionData | null>(null);
@@ -91,13 +91,20 @@ export default function SubmissionPage() {
         // Fetch user's team
         const { data: team, error: teamError } = await supabase
           .from('teams')
-          .select('id')
+          .select('id, payment_status')
           .eq('leader_id', user.id)
           .single();
 
         if (teamError || !team) {
           setError('You must be a team leader to make submissions. Please register a team first.');
           setStep('form');
+          setIsFetching(false);
+          return;
+        }
+
+        // Check payment verification
+        if (team.payment_status !== 'approved') {
+          setStep('not_verified');
           setIsFetching(false);
           return;
         }
@@ -281,6 +288,68 @@ export default function SubmissionPage() {
               <div className="relative space-y-2">
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-red-400 bg-clip-text text-transparent">Submissions Closed</h1>
                 <p className="text-muted-foreground">The submission deadline has passed or submissions have been closed by the organizers.</p>
+              </div>
+
+              <div className="relative space-y-3 pt-4">
+                <Link href="/team-dashboard" className="w-full block">
+                  <Button className="w-full bg-accent hover:bg-accent/90 text-white h-12 shadow-lg shadow-accent/25 hover:shadow-accent/40 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                    Back to Dashboard
+                  </Button>
+                </Link>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Payment not verified state
+  if (step === 'not_verified') {
+    return (
+      <div className="min-h-screen bg-background relative overflow-hidden flex flex-col">
+        {/* Animated Background */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 -right-48 w-[500px] h-[500px] bg-amber-500/20 rounded-full blur-[120px] animate-pulse"></div>
+          <div className="absolute bottom-1/4 -left-48 w-[500px] h-[500px] bg-accent/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]"></div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="border-b border-border/50 sticky top-0 z-40 bg-background/60 backdrop-blur-xl">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="relative">
+                <div className="absolute inset-0 bg-accent/30 rounded-lg blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <Image 
+                  src="/iutcs-logo.png" 
+                  alt="IUTCS Logo" 
+                  width={40} 
+                  height={40}
+                  className="relative h-10 w-auto"
+                />
+              </div>
+            </Link>
+          </div>
+        </nav>
+
+        <div className="flex-1 flex items-center justify-center px-4 py-8">
+          <div className="relative w-full max-w-md">
+            <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-8 text-center space-y-6 shadow-2xl shadow-amber-500/10">
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-accent/5 rounded-lg pointer-events-none"></div>
+              
+              <div className="relative flex justify-center">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-amber-500/30 rounded-full blur-xl animate-pulse"></div>
+                  <div className="relative w-24 h-24 bg-gradient-to-br from-amber-500/20 to-amber-500/5 rounded-full flex items-center justify-center border-2 border-amber-500/50 shadow-lg shadow-amber-500/20">
+                    <AlertCircle className="w-12 h-12 text-amber-500" />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="relative space-y-2">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-amber-400 bg-clip-text text-transparent">Payment Not Verified</h1>
+                <p className="text-muted-foreground">Your team&apos;s payment has not been verified yet. You can only submit after your payment is approved by the organizers.</p>
               </div>
 
               <div className="relative space-y-3 pt-4">

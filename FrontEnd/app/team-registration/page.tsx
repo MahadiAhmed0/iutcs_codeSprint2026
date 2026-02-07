@@ -1024,12 +1024,12 @@ export default function TeamRegistrationPage() {
                 <div className="bg-pink-500/5 border border-pink-500/20 rounded-xl p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Registration Fee</span>
-                    <span className="text-lg font-bold text-white">৳300</span>
+                    <span className="text-lg font-bold text-white">৳310</span>
                   </div>
                   <div className="text-sm text-muted-foreground space-y-1">
-                    <p>Send <span className="text-pink-400 font-semibold">300 BDT</span> to the following bKash number:</p>
-                    <p className="text-xl font-bold text-pink-400">01XXXXXXXXX</p>
-                    <p className="text-xs">(Personal/Merchant)</p>
+                    <p>Send <span className="text-pink-400 font-semibold">310 BDT</span> to the following bKash number:</p>
+                    <p className="text-xl font-bold text-pink-400">01791751468</p>
+                    <p className="text-xs">**Use your <span className="text-pink-400 font-semibold">TEAM NAME</span> as reference</p>
                   </div>
                 </div>
 
