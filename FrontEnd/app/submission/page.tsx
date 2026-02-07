@@ -18,6 +18,7 @@ interface SubmissionData {
   stack_report_link: string;
   dependencies_docs_link: string;
   github_link: string;
+  deployment_link?: string;
 }
 
 interface SubmissionSettings {
@@ -41,7 +42,8 @@ export default function SubmissionPage() {
     requirement_analysis_link: '',
     stack_report_link: '',
     dependencies_docs_link: '',
-    github_link: ''
+    github_link: '',
+    deployment_link: ''
   });
 
   // Validate Google Drive link
@@ -113,7 +115,8 @@ export default function SubmissionPage() {
             requirement_analysis_link: submission.requirement_analysis_link || '',
             stack_report_link: submission.stack_report_link || '',
             dependencies_docs_link: submission.dependencies_docs_link || '',
-            github_link: submission.github_link || ''
+            github_link: submission.github_link || '',
+            deployment_link: submission.deployment_link || ''
           });
         }
 
@@ -175,6 +178,7 @@ export default function SubmissionPage() {
             stack_report_link: formData.stack_report_link,
             dependencies_docs_link: formData.dependencies_docs_link,
             github_link: formData.github_link,
+            deployment_link: formData.deployment_link || null,
             updated_at: new Date().toISOString()
           })
           .eq('id', existingSubmission.id);
@@ -189,7 +193,8 @@ export default function SubmissionPage() {
             requirement_analysis_link: formData.requirement_analysis_link,
             stack_report_link: formData.stack_report_link,
             dependencies_docs_link: formData.dependencies_docs_link,
-            github_link: formData.github_link
+            github_link: formData.github_link,
+            deployment_link: formData.deployment_link || null
           });
 
         if (insertError) throw insertError;
@@ -573,6 +578,29 @@ export default function SubmissionPage() {
                   <ExternalLink className="w-3 h-3" />
                   Repository must be set to public
                 </p>
+              </div>
+
+              {/* Deployment Link (Optional) */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center border border-accent/20">
+                    <ExternalLink className="w-4 h-4 text-accent" />
+                  </div>
+                  <label className="block text-sm font-semibold text-white">
+                    Deployment Link <span className="text-xs text-muted-foreground">(optional)</span>
+                  </label>
+                </div>
+                <p className="text-xs text-muted-foreground mb-2">
+                  If your project is deployed, provide the public deployment URL (e.g., Vercel, Netlify, etc.)
+                </p>
+                <Input
+                  type="url"
+                  name="deployment_link"
+                  placeholder="https://your-app.vercel.app"
+                  value={formData.deployment_link}
+                  onChange={handleInputChange}
+                  className="bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors"
+                />
               </div>
 
               {/* Info Box */}
