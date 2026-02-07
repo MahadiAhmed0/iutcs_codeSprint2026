@@ -170,21 +170,24 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Left content */}
             <div className="space-y-6 sm:space-y-8 text-center lg:text-left">
-              <div className="space-y-4 sm:space-y-6">
+              <div className="space-y-2 sm:space-y-3">
                 <div className="inline-flex items-center gap-2 justify-center lg:justify-start">
                   <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-accent/10 border border-accent/30 rounded-full text-accent text-xs sm:text-sm font-semibold flex items-center gap-2 backdrop-blur-sm">
                     Organized by IUTCS
                   </span>
                 </div>
-                <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold leading-tight">
-                  <span className="bg-gradient-to-r from-white via-white to-accent bg-clip-text text-transparent">
-                    Code Sprint
-                  </span>
-                  <br />
-                  <span className="text-accent">2026</span>
-                </h1>
-                <p className="text-base sm:text-xl text-muted-foreground leading-relaxed max-w-lg mx-auto lg:mx-0">
-                  Showcase your skills, collaborate with your team, and compete for excellence in the annual IUTCS competition. Build, innovate, and win.
+                <div className="flex justify-center lg:justify-start -ml-2 lg:-ml-3">
+                  <Image 
+                    src="/codesprint-logo.png" 
+                    alt="Code Sprint 2026" 
+                    width={1500} 
+                    height={1200}
+                    className="w-[280px] sm:w-[360px] lg:w-[450px] h-auto drop-shadow-[0_0_30px_rgba(var(--accent-rgb),0.3)]"
+                    priority
+                  />
+                </div>
+                <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-md mx-auto lg:mx-0">
+                  Showcase your skills, collaborate with your team, and compete for excellence in the annual IUTCS competition.
                 </p>
               </div>
 
@@ -265,6 +268,23 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Banner Section */}
+      <section className="relative py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
+        <div className="relative max-w-5xl mx-auto">
+          <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-border/50 shadow-2xl shadow-accent/10 group">
+            <div className="absolute inset-0 bg-gradient-to-r from-accent/10 via-transparent to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <Image 
+              src="/banner.png" 
+              alt="Code Sprint 2026 - Organized by IUTCS" 
+              width={1366} 
+              height={768}
+              className="w-full h-auto"
+              priority
+            />
           </div>
         </div>
       </section>
