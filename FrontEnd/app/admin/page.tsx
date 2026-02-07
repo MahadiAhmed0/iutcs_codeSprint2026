@@ -25,7 +25,7 @@ interface Team {
   department: string;
   nationality: string;
   transaction_id: string;
-  payment_verified: boolean;
+  payment_status: string;
   members: Array<{ name: string; studentId: string; phone?: string; nationality?: string; email?: string }>;
   submission_status: string;
   created_at: string;
@@ -190,12 +190,12 @@ export default function AdminPanel() {
     teamId: team.id,
     teamName: team.name,
     transactionId: team.transaction_id,
-    status: team.payment_verified ? 'approved' : 'pending' as VerificationStatus,
+    status: (team.payment_status || 'pending') as VerificationStatus,
     submittedAt: new Date(team.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
   }));
 
   // Only show payment verified teams
-  const verifiedTeams = teams.filter(team => team.payment_verified);
+  const verifiedTeams = teams.filter(team => team.payment_status === 'approved');
   
   const filteredTeams = verifiedTeams.filter(team => {
     const matchesSearch = team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -222,7 +222,7 @@ export default function AdminPanel() {
     totalTeams: verifiedTeams.length,
     totalSubmissions: submissions.length,
     pendingSubmissions: verifiedTeams.length - submissions.length,
-    pendingVerifications: teams.filter(t => !t.payment_verified).length,
+    pendingVerifications: teams.filter(t => t.payment_status !== 'approved').length,
     totalVerified: verifiedTeams.length,
     totalRevenue: verifiedTeams.length * 300,
   };
@@ -247,7 +247,7 @@ export default function AdminPanel() {
       const { error } = await supabase
         .from('teams')
         .update({ 
-          payment_verified: confirmDialog.action === 'approve',
+          payment_status: confirmDialog.action === 'approve' ? 'approved' : 'rejected',
           updated_at: new Date().toISOString()
         })
         .eq('id', confirmDialog.teamId);
@@ -259,7 +259,7 @@ export default function AdminPanel() {
         // Update local state
         setTeams(prev => prev.map(team => 
           team.id === confirmDialog.teamId 
-            ? { ...team, payment_verified: confirmDialog.action === 'approve' }
+            ? { ...team, payment_status: confirmDialog.action === 'approve' ? 'approved' : 'rejected' }
             : team
         ));
         closeConfirmDialog();

@@ -29,13 +29,13 @@ export default function LandingPage() {
         const { count: teamCount, error: countError } = await supabase
           .from('teams')
           .select('*', { count: 'exact', head: true })
-          .eq('payment_verified', true);
+          .eq('payment_status', 'approved');
 
         // Fetch verified teams with members for participant count
         const { data: teams, error } = await supabase
           .from('teams')
           .select('id, members')
-          .eq('payment_verified', true);
+          .eq('payment_status', 'approved');
 
         console.log('Fetched teams for stats:', { teamCount, teams, error, countError });
 

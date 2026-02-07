@@ -38,7 +38,7 @@ CREATE TABLE public.teams (
   department TEXT NOT NULL,
   nationality TEXT DEFAULT 'Bangladesh',
   transaction_id TEXT NOT NULL,
-  payment_verified BOOLEAN DEFAULT false,
+  payment_status TEXT DEFAULT 'pending' CHECK (payment_status IN ('pending', 'approved', 'rejected')),
   members JSONB DEFAULT '[]',
   submission_status TEXT DEFAULT 'pending' CHECK (submission_status IN ('pending', 'submitted', 'approved', 'rejected')),
   submission_date TIMESTAMPTZ,

@@ -500,7 +500,7 @@ export default function TeamRegistrationPage() {
           department: formData.department,
           nationality: formData.nationality,
           transaction_id: formData.transactionId,
-          payment_verified: false,
+          payment_status: 'pending',
           members: teamMembers.filter(m => m.name.trim() !== '').map(m => ({
             name: m.name.trim(),
             studentId: m.studentId.trim(),
