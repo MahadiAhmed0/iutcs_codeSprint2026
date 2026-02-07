@@ -495,6 +495,7 @@ export default function SubmissionPage() {
               />
             </div>
             <span className="font-bold text-white hidden sm:inline">IUTCS</span>
+         
           </Link>
           
           <Link href="/team-dashboard">
