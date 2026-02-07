@@ -26,6 +26,7 @@ interface Team {
   nationality: string;
   transaction_id: string;
   payment_status: string;
+  competition_type: string;
   members: Array<{ name: string; studentId: string; phone?: string; nationality?: string; email?: string }>;
   submission_status: string;
   created_at: string;
@@ -51,6 +52,7 @@ interface VerificationData {
   teamId: string;
   teamName: string;
   transactionId: string;
+  competitionType: string;
   status: VerificationStatus;
   submittedAt: string;
 }
@@ -262,6 +264,7 @@ export default function AdminPanel() {
     teamId: team.id,
     teamName: team.name,
     transactionId: team.transaction_id,
+    competitionType: team.competition_type || 'ai_api',
     status: (team.payment_status || 'pending') as VerificationStatus,
     submittedAt: new Date(team.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
   }));
@@ -298,6 +301,26 @@ export default function AdminPanel() {
     totalVerified: verifiedTeams.length,
     totalRevenue: verifiedTeams.length * 300,
   };
+
+  // Competition type breakdown ("both" adds +1 to each category)
+  const competitionStats = (() => {
+    let aiApi = 0;
+    let devops = 0;
+    let both = 0;
+    verifiedTeams.forEach(team => {
+      const ct = team.competition_type || 'ai_api';
+      if (ct === 'both') {
+        both++;
+        aiApi++;
+        devops++;
+      } else if (ct === 'devops') {
+        devops++;
+      } else {
+        aiApi++;
+      }
+    });
+    return { aiApi, devops, both, total: verifiedTeams.length };
+  })();
 
   // Handle opening confirmation dialog
   const openConfirmDialog = (action: 'approve' | 'reject', teamId: string, teamName: string) => {
@@ -441,7 +464,7 @@ export default function AdminPanel() {
       return;
     }
     
-    const headers = ['Team Name', 'Leader Name', 'Leader Email', 'Leader Phone', 'Leader Student ID', 'Department', 'Nationality', 'Transaction ID', 'Members Count', 'Member Names', 'Registered At'];
+    const headers = ['Team Name', 'Leader Name', 'Leader Email', 'Leader Phone', 'Leader Student ID', 'Department', 'Nationality', 'Competition Type', 'Transaction ID', 'Members Count', 'Member Names', 'Registered At'];
     const rows = verifiedTeams.map(team => [
       team.name,
       team.leader_name,
@@ -450,6 +473,7 @@ export default function AdminPanel() {
       team.leader_student_id,
       team.department,
       team.nationality,
+      team.competition_type === 'both' ? 'Both' : team.competition_type === 'devops' ? 'DevOps' : 'AI & API',
       team.transaction_id,
       (team.members?.length || 0) + 1,
       team.members?.map(m => m.name).join('; ') || '',
@@ -635,6 +659,93 @@ export default function AdminPanel() {
           </Card>
         </div>
 
+        {/* Competition Breakdown */}
+        <Card className="bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-xl border border-border/50 p-4 sm:p-6 shadow-xl">
+          <div className="flex flex-col md:flex-row items-center gap-6 sm:gap-8">
+            {/* Pie Chart */}
+            <div className="relative flex-shrink-0">
+              <svg width="180" height="180" viewBox="0 0 180 180" className="sm:w-[220px] sm:h-[220px]">
+                {(() => {
+                  const total = competitionStats.aiApi + competitionStats.devops;
+                  if (total === 0) {
+                    return <circle cx="90" cy="90" r="70" fill="none" stroke="currentColor" strokeWidth="28" className="text-border/30" />;
+                  }
+                  const aiPct = competitionStats.aiApi / total;
+                  const devopsPct = competitionStats.devops / total;
+                  const r = 70;
+                  const c = 2 * Math.PI * r;
+                  const aiLen = aiPct * c;
+                  const devopsLen = devopsPct * c;
+                  return (
+                    <>
+                      {/* DevOps segment */}
+                      <circle cx="90" cy="90" r={r} fill="none" stroke="#06b6d4" strokeWidth="28" strokeDasharray={`${devopsLen} ${c - devopsLen}`} strokeDashoffset={c * 0.25} className="transition-all duration-700" style={{ filter: 'drop-shadow(0 0 6px rgba(6,182,212,0.3))' }} />
+                      {/* AI & API segment */}
+                      <circle cx="90" cy="90" r={r} fill="none" stroke="#3b82f6" strokeWidth="28" strokeDasharray={`${aiLen} ${c - aiLen}`} strokeDashoffset={c * 0.25 - devopsLen} className="transition-all duration-700" style={{ filter: 'drop-shadow(0 0 6px rgba(59,130,246,0.3))' }} />
+                      {/* Center text */}
+                      <text x="90" y="82" textAnchor="middle" className="fill-white text-2xl sm:text-3xl font-bold" style={{ fontSize: '28px', fontWeight: 700 }}>{competitionStats.total}</text>
+                      <text x="90" y="104" textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: '11px' }}>Total Teams</text>
+                    </>
+                  );
+                })()}
+              </svg>
+            </div>
+
+            {/* Legend + Stats */}
+            <div className="flex-1 w-full space-y-3 sm:space-y-4">
+              <h3 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2">
+                Competition Breakdown
+              </h3>
+              
+              {/* AI & API */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-blue-500 shadow-lg shadow-blue-500/30"></div>
+                    <span className="text-xs sm:text-sm text-muted-foreground">AI & API</span>
+                  </div>
+                  <span className="text-sm sm:text-base font-bold text-white">{competitionStats.aiApi}</span>
+                </div>
+                <div className="h-1.5 bg-background/50 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full transition-all duration-700" style={{ width: `${competitionStats.total > 0 ? (competitionStats.aiApi / (competitionStats.aiApi + competitionStats.devops)) * 100 : 0}%` }}></div>
+                </div>
+              </div>
+
+              {/* DevOps */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-cyan-500 shadow-lg shadow-cyan-500/30"></div>
+                    <span className="text-xs sm:text-sm text-muted-foreground">DevOps</span>
+                  </div>
+                  <span className="text-sm sm:text-base font-bold text-white">{competitionStats.devops}</span>
+                </div>
+                <div className="h-1.5 bg-background/50 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full transition-all duration-700" style={{ width: `${competitionStats.total > 0 ? (competitionStats.devops / (competitionStats.aiApi + competitionStats.devops)) * 100 : 0}%` }}></div>
+                </div>
+              </div>
+
+              {/* Both */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-purple-500 shadow-lg shadow-purple-500/30"></div>
+                    <span className="text-xs sm:text-sm text-muted-foreground">Both (counted in each)</span>
+                  </div>
+                  <span className="text-sm sm:text-base font-bold text-white">{competitionStats.both}</span>
+                </div>
+                <div className="h-1.5 bg-background/50 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-purple-500 to-purple-400 rounded-full transition-all duration-700" style={{ width: `${competitionStats.total > 0 ? (competitionStats.both / competitionStats.total) * 100 : 0}%` }}></div>
+                </div>
+              </div>
+
+              <p className="text-[10px] sm:text-xs text-muted-foreground/60 pt-1 border-t border-border/30">
+                Teams that selected &quot;Both&quot; are counted once in each category
+              </p>
+            </div>
+          </div>
+        </Card>
+
         {/* Download All Teams Button */}
         <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
           <Button 
@@ -747,6 +858,7 @@ export default function AdminPanel() {
                     <tr>
                       <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Team Name</th>
                       <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Leader</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Competition</th>
                       <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Members</th>
                       <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Status</th>
                       <th className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-semibold text-white">Action</th>
@@ -757,6 +869,15 @@ export default function AdminPanel() {
                       <tr key={team.id} className="hover:bg-accent/5 transition-colors">
                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-white font-medium text-sm">{team.name}</td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-muted-foreground text-sm">{team.leader_name}</td>
+                        <td className="px-3 sm:px-6 py-3 sm:py-4">
+                          <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold border ${
+                            team.competition_type === 'both' ? 'bg-purple-500/10 text-purple-300 border-purple-500/30' :
+                            team.competition_type === 'devops' ? 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30' :
+                            'bg-blue-500/10 text-blue-300 border-blue-500/30'
+                          }`}>
+                            {team.competition_type === 'both' ? 'Both' : team.competition_type === 'devops' ? 'DevOps' : 'AI & API'}
+                          </span>
+                        </td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-white text-sm">{(team.members?.length || 0) + 1}</td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4">
                           <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold border ${
@@ -782,7 +903,7 @@ export default function AdminPanel() {
                     ))}
                     {filteredTeams.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
+                        <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
                           No verified teams found
                         </td>
                       </tr>
@@ -817,9 +938,18 @@ export default function AdminPanel() {
                   {/* Team Name */}
                   <div className="text-center pb-3 sm:pb-4 border-b border-border/30">
                     <h3 className="text-xl sm:text-2xl font-bold text-white break-words">{selectedTeam.name}</h3>
-                    <span className="inline-block mt-2 px-3 py-1 bg-green-500/10 text-green-300 border border-green-500/30 rounded-full text-xs font-semibold">
-                      Payment Verified
-                    </span>
+                    <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
+                      <span className="inline-block px-3 py-1 bg-green-500/10 text-green-300 border border-green-500/30 rounded-full text-xs font-semibold">
+                        Payment Verified
+                      </span>
+                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border ${
+                        selectedTeam.competition_type === 'both' ? 'bg-purple-500/10 text-purple-300 border-purple-500/30' :
+                        selectedTeam.competition_type === 'devops' ? 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30' :
+                        'bg-blue-500/10 text-blue-300 border-blue-500/30'
+                      }`}>
+                        {selectedTeam.competition_type === 'both' ? 'Both Competitions' : selectedTeam.competition_type === 'devops' ? 'DevOps' : 'AI & API'}
+                      </span>
+                    </div>
                   </div>
                   
                   {/* Leader Info */}
@@ -968,7 +1098,7 @@ export default function AdminPanel() {
                       ))}
                       {filteredSubmissions.length === 0 && (
                         <tr>
-                          <td colSpan={4} className="px-3 sm:px-6 py-6 sm:py-8 text-center text-muted-foreground text-sm">
+                          <td colSpan={5} className="px-3 sm:px-6 py-6 sm:py-8 text-center text-muted-foreground text-sm">
                             No submissions found
                           </td>
                         </tr>
@@ -1153,6 +1283,7 @@ export default function AdminPanel() {
                     <tr>
                       <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Team Name</th>
                       <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Transaction ID</th>
+                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Competition</th>
                       <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Registered</th>
                       <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Status</th>
                       <th className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-semibold text-white">Action</th>
@@ -1163,6 +1294,15 @@ export default function AdminPanel() {
                       <tr key={item.id} className="hover:bg-accent/5 transition-colors">
                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-white font-medium text-sm">{item.teamName}</td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-muted-foreground text-xs sm:text-sm font-mono">{item.transactionId}</td>
+                        <td className="px-3 sm:px-6 py-3 sm:py-4">
+                          <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold border ${
+                            item.competitionType === 'both' ? 'bg-purple-500/10 text-purple-300 border-purple-500/30' :
+                            item.competitionType === 'devops' ? 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30' :
+                            'bg-blue-500/10 text-blue-300 border-blue-500/30'
+                          }`}>
+                            {item.competitionType === 'both' ? 'Both' : item.competitionType === 'devops' ? 'DevOps' : 'AI & API'}
+                          </span>
+                        </td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-muted-foreground text-xs sm:text-sm">{item.submittedAt}</td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4">
                           <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold border ${
