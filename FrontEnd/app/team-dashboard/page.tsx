@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { LogOut, Send, Settings, Users, FileText, CheckCircle, Clock, Sparkles, ArrowRight } from 'lucide-react';
+import { LogOut, Send, Settings, Users, FileText, CheckCircle, Clock, Sparkles, ArrowRight, X } from 'lucide-react';
 import { ScrollToTop } from '@/components/scroll-to-top';
 import { useAuth } from '@/contexts/auth-context';
 import { createClient } from '@/lib/supabase/client';
@@ -21,7 +21,7 @@ interface TeamData {
   department: string;
   nationality: string;
   transaction_id: string;
-  payment_verified: boolean;
+  payment_status: string;
   members: Array<{ name: string; studentId: string }>;
   submission_status: string;
   submission_date: string | null;
@@ -103,7 +103,7 @@ export default function TeamDashboard() {
     leader_name: user?.user_metadata?.full_name || 'Team Leader',
     leader_email: user?.email || '',
     members: [],
-    payment_verified: false,
+    payment_status: 'pending',
     submission_status: 'pending',
     submission_date: null,
   };
@@ -206,7 +206,7 @@ export default function TeamDashboard() {
                 Payment Status
               </h2>
               
-              {displayData.payment_verified ? (
+              {displayData.payment_status === 'approved' ? (
                 <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
                   <p className="text-sm text-green-200 font-semibold flex items-center gap-2">
                     <CheckCircle className="w-4 h-4" />
@@ -214,11 +214,19 @@ export default function TeamDashboard() {
                   </p>
                   <p className="text-xs text-green-200/70 mt-1">Your registration is confirmed</p>
                 </div>
+              ) : displayData.payment_status === 'rejected' ? (
+                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                  <p className="text-sm text-red-200 font-semibold flex items-center gap-2">
+                    <X className="w-4 h-4" />
+                    Payment Rejected
+                  </p>
+                  <p className="text-xs text-red-200/70 mt-1">Your payment was rejected. Please contact the organizer.</p>
+                </div>
               ) : (
                 <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
                   <p className="text-sm text-amber-200 font-semibold flex items-center gap-2">
                     <Clock className="w-4 h-4" />
-                    Payment Unverified
+                    Payment Pending
                   </p>
                   <p className="text-xs text-amber-200/70 mt-1">Waiting for admin verification</p>
                 </div>

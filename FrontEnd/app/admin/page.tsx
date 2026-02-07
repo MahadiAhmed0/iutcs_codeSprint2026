@@ -25,7 +25,7 @@ interface Team {
   department: string;
   nationality: string;
   transaction_id: string;
-  payment_verified: boolean;
+  payment_status: string;
   members: Array<{ name: string; studentId: string; phone?: string; nationality?: string; email?: string }>;
   submission_status: string;
   created_at: string;
@@ -38,6 +38,8 @@ interface Submission {
   stack_report_link: string;
   dependencies_docs_link: string;
   github_link: string;
+  deployment_link?: string;
+  demonstration_video_link?: string;
   status: string;
   submitted_at: string;
   // Joined from teams
@@ -190,12 +192,12 @@ export default function AdminPanel() {
     teamId: team.id,
     teamName: team.name,
     transactionId: team.transaction_id,
-    status: team.payment_verified ? 'approved' : 'pending' as VerificationStatus,
+    status: (team.payment_status || 'pending') as VerificationStatus,
     submittedAt: new Date(team.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
   }));
 
   // Only show payment verified teams
-  const verifiedTeams = teams.filter(team => team.payment_verified);
+  const verifiedTeams = teams.filter(team => team.payment_status === 'approved');
   
   const filteredTeams = verifiedTeams.filter(team => {
     const matchesSearch = team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -222,7 +224,7 @@ export default function AdminPanel() {
     totalTeams: verifiedTeams.length,
     totalSubmissions: submissions.length,
     pendingSubmissions: verifiedTeams.length - submissions.length,
-    pendingVerifications: teams.filter(t => !t.payment_verified).length,
+    pendingVerifications: teams.filter(t => t.payment_status !== 'approved').length,
     totalVerified: verifiedTeams.length,
     totalRevenue: verifiedTeams.length * 300,
   };
@@ -247,7 +249,7 @@ export default function AdminPanel() {
       const { error } = await supabase
         .from('teams')
         .update({ 
-          payment_verified: confirmDialog.action === 'approve',
+          payment_status: confirmDialog.action === 'approve' ? 'approved' : 'rejected',
           updated_at: new Date().toISOString()
         })
         .eq('id', confirmDialog.teamId);
@@ -259,7 +261,7 @@ export default function AdminPanel() {
         // Update local state
         setTeams(prev => prev.map(team => 
           team.id === confirmDialog.teamId 
-            ? { ...team, payment_verified: confirmDialog.action === 'approve' }
+            ? { ...team, payment_status: confirmDialog.action === 'approve' ? 'approved' : 'rejected' }
             : team
         ));
         closeConfirmDialog();
@@ -304,6 +306,12 @@ export default function AdminPanel() {
     
     <p class="label">GitHub Repository:</p>
     <p class="link"><a href="${item.submission.github_link}">${item.submission.github_link}</a></p>
+    
+    ${item.submission.deployment_link ? `<p class="label">Deployment Link:</p>
+    <p class="link"><a href="${item.submission.deployment_link}">${item.submission.deployment_link}</a></p>` : ''}
+    
+    ${item.submission.demonstration_video_link ? `<p class="label">Demonstration Video:</p>
+    <p class="link"><a href="${item.submission.demonstration_video_link}">${item.submission.demonstration_video_link}</a></p>` : ''}
   </div>
   <p class="date">Submitted: ${item.submittedAt}</p>
 </body>
@@ -328,13 +336,15 @@ export default function AdminPanel() {
       return;
     }
     
-    const headers = ['Team Name', 'Requirement Analysis', 'Stack Report', 'Dependencies & Docs', 'GitHub Link', 'Submitted At'];
+    const headers = ['Team Name', 'Requirement Analysis', 'Stack Report', 'Dependencies & Docs', 'GitHub Link', 'Deployment Link', 'Demonstration Video', 'Submitted At'];
     const rows = submittedTeams.map(item => [
       item.teamName,
       item.submission!.requirement_analysis_link,
       item.submission!.stack_report_link,
       item.submission!.dependencies_docs_link,
       item.submission!.github_link,
+      item.submission!.deployment_link || '',
+      item.submission!.demonstration_video_link || '',
       item.submittedAt || ''
     ]);
     
@@ -1012,6 +1022,52 @@ export default function AdminPanel() {
                         </a>
                       </div>
                     </div>
+                    
+                    {/* Deployment Link (Optional) */}
+                    {selectedSubmission.submission.deployment_link && (
+                      <div className="bg-background/50 rounded-lg p-3 sm:p-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-white font-medium text-sm">Deployment Link</p>
+                            <p className="text-muted-foreground text-[10px] sm:text-xs mt-1 truncate">{selectedSubmission.submission.deployment_link}</p>
+                          </div>
+                          <a 
+                            href={selectedSubmission.submission.deployment_link} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex-shrink-0"
+                          >
+                            <Button size="sm" variant="outline" className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 gap-2 text-xs sm:text-sm w-full sm:w-auto">
+                              <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                              Open
+                            </Button>
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Demonstration Video (Optional) */}
+                    {selectedSubmission.submission.demonstration_video_link && (
+                      <div className="bg-background/50 rounded-lg p-3 sm:p-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-white font-medium text-sm">Demonstration Video</p>
+                            <p className="text-muted-foreground text-[10px] sm:text-xs mt-1 truncate">{selectedSubmission.submission.demonstration_video_link}</p>
+                          </div>
+                          <a 
+                            href={selectedSubmission.submission.demonstration_video_link} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex-shrink-0"
+                          >
+                            <Button size="sm" variant="outline" className="border-rose-500/30 text-rose-400 hover:bg-rose-500/10 gap-2 text-xs sm:text-sm w-full sm:w-auto">
+                              <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                              Open
+                            </Button>
+                          </a>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </Card>
