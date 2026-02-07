@@ -19,6 +19,7 @@ interface SubmissionData {
   dependencies_docs_link: string;
   github_link: string;
   deployment_link?: string;
+  demonstration_video_link?: string;
 }
 
 interface SubmissionSettings {
@@ -43,7 +44,8 @@ export default function SubmissionPage() {
     stack_report_link: '',
     dependencies_docs_link: '',
     github_link: '',
-    deployment_link: ''
+    deployment_link: '',
+    demonstration_video_link: ''
   });
 
   // Validate Google Drive link
@@ -116,7 +118,8 @@ export default function SubmissionPage() {
             stack_report_link: submission.stack_report_link || '',
             dependencies_docs_link: submission.dependencies_docs_link || '',
             github_link: submission.github_link || '',
-            deployment_link: submission.deployment_link || ''
+            deployment_link: submission.deployment_link || '',
+            demonstration_video_link: submission.demonstration_video_link || ''
           });
         }
 
@@ -179,6 +182,7 @@ export default function SubmissionPage() {
             dependencies_docs_link: formData.dependencies_docs_link,
             github_link: formData.github_link,
             deployment_link: formData.deployment_link || null,
+            demonstration_video_link: formData.demonstration_video_link || null,
             updated_at: new Date().toISOString()
           })
           .eq('id', existingSubmission.id);
@@ -194,7 +198,8 @@ export default function SubmissionPage() {
             stack_report_link: formData.stack_report_link,
             dependencies_docs_link: formData.dependencies_docs_link,
             github_link: formData.github_link,
-            deployment_link: formData.deployment_link || null
+            deployment_link: formData.deployment_link || null,
+            demonstration_video_link: formData.demonstration_video_link || null
           });
 
         if (insertError) throw insertError;
@@ -581,6 +586,28 @@ export default function SubmissionPage() {
               </div>
 
               {/* Deployment Link (Optional) */}
+                            {/* Demonstration Video Link (Optional) */}
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center border border-accent/20">
+                                  <ExternalLink className="w-4 h-4 text-accent" />
+                                </div>
+                                <label className="block text-sm font-semibold text-white">
+                                  Demonstration Video Link <span className="text-xs text-muted-foreground">(optional)</span>
+                                </label>
+                              </div>
+                              <p className="text-xs text-muted-foreground mb-2">
+                                Upload your demo video to YouTube, Google Drive, or any online video platform and provide the public link.
+                              </p>
+                              <Input
+                                type="url"
+                                name="demonstration_video_link"
+                                placeholder="https://youtu.be/your-demo-video"
+                                value={formData.demonstration_video_link}
+                                onChange={handleInputChange}
+                                className="bg-background/50 border-border/50 text-white placeholder:text-muted-foreground focus:border-accent/50 transition-colors"
+                              />
+                            </div>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center border border-accent/20">
