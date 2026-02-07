@@ -9,9 +9,9 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'IUTCS Competition Management',
+  title: 'IUTCS CodeSprint 2026',
   description: 'IUT Computer Society - Competition Management Platform',
-  generator: 'v0.app',
+  generator: 'Mahadi',
   icons: {
     icon: '/iutcs-logo.png',
     apple: '/iutcs-logo.png',
