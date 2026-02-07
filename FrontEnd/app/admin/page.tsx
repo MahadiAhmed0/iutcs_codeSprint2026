@@ -1174,29 +1174,25 @@ export default function AdminPanel() {
                           </span>
                         </td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-right flex justify-end gap-1 sm:gap-2">
-                          {item.status === 'pending' ? (
-                            <>
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
-                                className="border-green-500/30 text-green-400 hover:bg-green-500/10 hover:border-green-500/50 bg-transparent transition-all p-1.5 sm:p-2"
-                                onClick={() => openConfirmDialog('approve', item.teamId, item.teamName)}
-                              >
-                                <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="outline" 
-                                className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50 bg-transparent transition-all p-1.5 sm:p-2"
-                                onClick={() => openConfirmDialog('reject', item.teamId, item.teamName)}
-                              >
-                                <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                              </Button>
-                            </>
-                          ) : (
-                            <span className="text-[10px] sm:text-xs text-muted-foreground">
-                              {item.status === 'approved' ? 'Verified' : 'Rejected'}
-                            </span>
+                          {item.status !== 'approved' && (
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="border-green-500/30 text-green-400 hover:bg-green-500/10 hover:border-green-500/50 bg-transparent transition-all p-1.5 sm:p-2"
+                              onClick={() => openConfirmDialog('approve', item.teamId, item.teamName)}
+                            >
+                              <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            </Button>
+                          )}
+                          {item.status !== 'rejected' && (
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50 bg-transparent transition-all p-1.5 sm:p-2"
+                              onClick={() => openConfirmDialog('reject', item.teamId, item.teamName)}
+                            >
+                              <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            </Button>
                           )}
                         </td>
                       </tr>
