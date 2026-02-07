@@ -77,6 +77,18 @@ CREATE TABLE public.submission_settings (
 INSERT INTO public.submission_settings (is_submission_open, deadline)
 VALUES (true, '2026-02-28 23:59:59+06');
 
+-- Registration settings table (to control registration open/close)
+CREATE TABLE public.registration_settings (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  is_registration_open BOOLEAN DEFAULT true,
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_by UUID REFERENCES auth.users(id)
+);
+
+-- Insert default registration settings
+INSERT INTO public.registration_settings (is_registration_open)
+VALUES (true);
+
 -- Rulebook table
 CREATE TABLE public.rulebook (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -119,6 +131,7 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.teams ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.submission_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.registration_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.rulebook ENABLE ROW LEVEL SECURITY;
 
 -- Step 6: Create RLS Policies
@@ -220,6 +233,19 @@ CREATE POLICY "submission_settings_all_admin"
   TO authenticated
   USING (public.is_admin());
 
+-- REGISTRATION SETTINGS POLICIES
+-- Allow all authenticated users to read registration settings
+CREATE POLICY "registration_settings_select_all"
+  ON public.registration_settings FOR SELECT
+  TO authenticated
+  USING (true);
+
+-- Allow admins to manage registration settings
+CREATE POLICY "registration_settings_all_admin"
+  ON public.registration_settings FOR ALL
+  TO authenticated
+  USING (public.is_admin());
+
 -- RULEBOOK POLICIES
 -- Allow anyone (including anonymous) to read rulebook
 CREATE POLICY "rulebook_select_all"
@@ -240,6 +266,7 @@ GRANT ALL ON public.profiles TO authenticated;
 GRANT ALL ON public.teams TO authenticated;
 GRANT ALL ON public.submissions TO authenticated;
 GRANT ALL ON public.submission_settings TO authenticated;
+GRANT ALL ON public.registration_settings TO authenticated;
 GRANT ALL ON public.rulebook TO authenticated;
 GRANT SELECT ON public.rulebook TO anon;
 GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;

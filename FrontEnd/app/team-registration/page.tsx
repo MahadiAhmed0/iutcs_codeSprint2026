@@ -193,6 +193,7 @@ export default function TeamRegistrationPage() {
   const [step, setStep] = useState<'competition' | 'form' | 'success'>('competition');
   const [competitionType, setCompetitionType] = useState<'ai_api' | 'devops' | 'both' | null>(null);
   const [devopsOnly, setDevopsOnly] = useState(false);
+  const [registrationOpen, setRegistrationOpen] = useState<boolean | null>(null);
   const [formData, setFormData] = useState({
     teamName: '',
     leaderName: '',
@@ -254,6 +255,14 @@ export default function TeamRegistrationPage() {
             leaderName: user.user_metadata?.full_name || '',
           }));
         }
+
+        // Check if registration is open
+        const { data: regSettings } = await supabase
+          .from('registration_settings')
+          .select('is_registration_open')
+          .single();
+        
+        setRegistrationOpen(regSettings?.is_registration_open ?? true);
       } else if (!authLoading && !user) {
         console.log('No user, redirecting to login...');
         router.push('/login');
@@ -583,10 +592,53 @@ export default function TeamRegistrationPage() {
   };
 
   // Show loading while checking auth
-  if (authLoading) {
+  if (authLoading || registrationOpen === null) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  // Registration closed
+  if (registrationOpen === false) {
+    return (
+      <div className="min-h-screen bg-background relative overflow-hidden flex items-center justify-center">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 -right-48 w-[500px] h-[500px] bg-accent/20 rounded-full blur-[120px] animate-pulse"></div>
+          <div className="absolute bottom-1/4 -left-48 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear_gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]"></div>
+        </div>
+        <div className="relative w-full max-w-md mx-auto px-4">
+          <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-8 text-center space-y-6 shadow-2xl shadow-red-500/10">
+            <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 via-transparent to-accent/5 rounded-lg pointer-events-none"></div>
+            <div className="relative flex justify-center">
+              <div className="relative">
+                <div className="absolute inset-0 bg-red-500/30 rounded-full blur-xl animate-pulse"></div>
+                <div className="relative w-20 h-20 bg-gradient-to-br from-red-500/20 to-red-500/5 rounded-full flex items-center justify-center border-2 border-red-500/50 shadow-lg shadow-red-500/20">
+                  <AlertCircle className="w-10 h-10 text-red-500" />
+                </div>
+              </div>
+            </div>
+            <div className="relative space-y-2">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-red-400 bg-clip-text text-transparent">Registration Closed</h1>
+              <p className="text-muted-foreground text-sm">Registration is currently closed. Stay tuned for updates!</p>
+            </div>
+            <div className="relative space-y-3 pt-2">
+              <Button 
+                onClick={async () => { await signOut(); router.push('/login'); }}
+                className="w-full bg-accent hover:bg-accent/90 text-white h-11 shadow-lg shadow-accent/25"
+              >
+                Login / Register
+              </Button>
+              <Link href="/" className="w-full block">
+                <Button variant="outline" className="w-full border-border/50 text-white hover:bg-accent/5 hover:border-accent/30 h-11 bg-transparent">
+                  Back to Home
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        </div>
       </div>
     );
   }

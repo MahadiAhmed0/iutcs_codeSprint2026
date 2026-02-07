@@ -7,12 +7,12 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { LogOut, Search, Eye, Check, X, Filter, ChevronDown, Users, FileText, CheckCircle, Shield, Sparkles, AlertTriangle, Loader2, Download, DollarSign } from 'lucide-react';
+import { LogOut, Search, Eye, Check, X, Filter, ChevronDown, Users, FileText, CheckCircle, Shield, Sparkles, AlertTriangle, Loader2, Download, DollarSign, Settings } from 'lucide-react';
 import { ScrollToTop } from '@/components/scroll-to-top';
 import { useAuth } from '@/contexts/auth-context';
 import { createClient } from '@/lib/supabase/client';
 
-type Tab = 'teams' | 'submissions' | 'verification';
+type Tab = 'teams' | 'submissions' | 'verification' | 'settings';
 type VerificationStatus = 'pending' | 'approved' | 'rejected';
 
 interface Team {
@@ -66,6 +66,8 @@ export default function AdminPanel() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRegistrationOpen, setIsRegistrationOpen] = useState(true);
+  const [isTogglingRegistration, setIsTogglingRegistration] = useState(false);
   
   // Confirmation dialog state
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -146,12 +148,35 @@ export default function AdminPanel() {
     if (!authLoading && profile?.role === 'admin') {
       fetchTeams();
       fetchSubmissions();
+      
+      // Fetch registration settings
+      const fetchRegistrationSettings = async () => {
+        const { data } = await supabase
+          .from('registration_settings')
+          .select('is_registration_open')
+          .single();
+        if (data) setIsRegistrationOpen(data.is_registration_open);
+      };
+      fetchRegistrationSettings();
     }
   }, [profile, authLoading, supabase]);
 
   const handleSignOut = async () => {
     await signOut();
     router.push('/');
+  };
+
+  const toggleRegistration = async () => {
+    setIsTogglingRegistration(true);
+    const newValue = !isRegistrationOpen;
+    const { error } = await supabase
+      .from('registration_settings')
+      .update({ is_registration_open: newValue, updated_at: new Date().toISOString(), updated_by: user?.id })
+      .not('id', 'is', null); // update all rows (there's only one)
+    if (!error) {
+      setIsRegistrationOpen(newValue);
+    }
+    setIsTogglingRegistration(false);
   };
 
   // Loading state
@@ -592,7 +617,7 @@ export default function AdminPanel() {
         {/* Tabs */}
         <div className="border-b border-border/50 overflow-x-auto">
           <div className="flex gap-1 min-w-max">
-            {(['teams', 'submissions', 'verification'] as const).map(tab => (
+            {(['teams', 'submissions', 'verification', 'settings'] as const).map(tab => (
               <button
                 key={tab}
                 onClick={() => {
@@ -1135,6 +1160,54 @@ export default function AdminPanel() {
                 </table>
               </div>
             </Card>
+          )}
+
+          {/* Settings Tab */}
+          {activeTab === 'settings' && (
+            <div className="space-y-6">
+              <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-5 sm:p-6 shadow-lg">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center border border-accent/20">
+                    <Settings className="w-5 h-5 text-accent" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-white">Registration Control</h2>
+                    <p className="text-xs text-muted-foreground">Manage team registration access</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-background/50 rounded-xl border border-border/30">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-white">Registration Status</p>
+                    <p className="text-xs text-muted-foreground">
+                      {isRegistrationOpen
+                        ? 'New teams can register. Toggle off to close registration.'
+                        : 'Registration is closed. Already registered teams can still access their dashboard.'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={toggleRegistration}
+                    disabled={isTogglingRegistration}
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent/50 disabled:opacity-50 ${
+                      isRegistrationOpen ? 'bg-green-500' : 'bg-muted-foreground/30'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform ${
+                        isRegistrationOpen ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                <div className="mt-4 flex items-center gap-2">
+                  <div className={`w-2.5 h-2.5 rounded-full ${isRegistrationOpen ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                  <span className={`text-sm font-medium ${isRegistrationOpen ? 'text-green-400' : 'text-red-400'}`}>
+                    {isRegistrationOpen ? 'Open' : 'Closed'}
+                  </span>
+                </div>
+              </Card>
+            </div>
           )}
         </div>
       </div>

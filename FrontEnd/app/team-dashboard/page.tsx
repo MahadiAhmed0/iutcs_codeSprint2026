@@ -71,9 +71,11 @@ export default function TeamDashboard() {
           }
         }
         
-        // If no team found, redirect to registration
+        // If no team found, force logout unregistered user
         if (!teamFound && !profile?.is_registered) {
-          router.push('/team-registration');
+          await signOut();
+          router.push('/login');
+          return;
         }
         
         setIsLoading(false);

@@ -12,6 +12,7 @@ export default function LandingPage() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [stats, setStats] = useState({ totalTeams: 0, totalParticipants: 0 });
+  const [isRegistrationOpen, setIsRegistrationOpen] = useState(true);
   const progressCircleRef = useRef<SVGCircleElement>(null);
   const circumference = 2 * Math.PI * 26;
   const supabase = createClient();
@@ -19,7 +20,8 @@ export default function LandingPage() {
 
   const isLoggedIn = !!user;
   const isAdmin = profile?.role === 'admin';
-  const dashboardLink = isAdmin ? '/admin' : (profile?.is_registered ? '/team-dashboard' : '/team-registration');
+  const isRegistered = !!profile?.is_registered;
+  const dashboardLink = isAdmin ? '/admin' : '/team-dashboard';
 
   // Fetch actual stats from database
   useEffect(() => {
@@ -59,6 +61,18 @@ export default function LandingPage() {
     };
 
     fetchStats();
+  }, []);
+
+  // Fetch registration status
+  useEffect(() => {
+    const fetchRegistrationStatus = async () => {
+      const { data } = await supabase
+        .from('registration_settings')
+        .select('is_registration_open')
+        .single();
+      if (data) setIsRegistrationOpen(data.is_registration_open);
+    };
+    fetchRegistrationStatus();
   }, []);
 
   // Scroll to top handler
@@ -146,7 +160,7 @@ export default function LandingPage() {
                 Rulebook
               </Button>
             </Link>
-            {isLoggedIn ? (
+            {isLoggedIn && (isRegistered || isAdmin) ? (
               <Link href={dashboardLink}>
                 <Button className="bg-accent hover:bg-accent/90 text-white shadow-lg shadow-accent/20 hover:shadow-accent/40 transition-all hover:scale-105 gap-2">
                   <LayoutDashboard className="w-4 h-4" />
@@ -154,9 +168,9 @@ export default function LandingPage() {
                 </Button>
               </Link>
             ) : (
-              <Link href="/login">
+              <Link href={isLoggedIn ? '/team-registration' : '/login'}>
                 <Button className="bg-accent hover:bg-accent/90 text-white shadow-lg shadow-accent/20 hover:shadow-accent/40 transition-all hover:scale-105">
-                  Login / Register
+                  {isLoggedIn ? 'Login / Register' : 'Login / Register'}
                 </Button>
               </Link>
             )}
@@ -209,9 +223,9 @@ export default function LandingPage() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
-                <Link href={isLoggedIn ? dashboardLink : '/login'} className="w-full sm:w-auto">
+                <Link href={isLoggedIn && (isRegistered || isAdmin) ? dashboardLink : (isLoggedIn ? '/team-registration' : '/login')} className="w-full sm:w-auto">
                   <Button className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-white px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg h-auto group shadow-lg shadow-accent/25 hover:shadow-accent/40 hover:scale-[1.02] active:scale-[0.98] transition-all">
-                    {isLoggedIn ? 'Go to Dashboard' : 'Register Your Team'}
+                    {isLoggedIn && (isRegistered || isAdmin) ? 'Go to Dashboard' : 'Register Your Team'}
                     <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
@@ -262,9 +276,17 @@ export default function LandingPage() {
                 </p>
                 
                 {/* Live badge */}
-                <div className="mt-6 sm:mt-8 inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/30 rounded-full">
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                  <span className="text-xs sm:text-sm text-accent font-medium">Registration Open</span>
+                <div className={`mt-6 sm:mt-8 inline-flex items-center gap-2 px-4 py-2 rounded-full ${
+                  isRegistrationOpen
+                    ? 'bg-accent/10 border border-accent/30'
+                    : 'bg-red-500/10 border border-red-500/30'
+                }`}>
+                  <span className={`w-2 h-2 rounded-full ${
+                    isRegistrationOpen ? 'bg-green-500 animate-pulse' : 'bg-red-500'
+                  }`}></span>
+                  <span className={`text-xs sm:text-sm font-medium ${
+                    isRegistrationOpen ? 'text-accent' : 'text-red-400'
+                  }`}>{isRegistrationOpen ? 'Registration Open' : 'Registration Closed'}</span>
                 </div>
               </div>
             </div>
@@ -450,17 +472,17 @@ export default function LandingPage() {
           
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
             <span className="bg-gradient-to-r from-white via-white to-accent bg-clip-text text-transparent">
-              {isLoggedIn ? 'Welcome Back!' : 'Ready to Compete?'}
+              {isLoggedIn && (isRegistered || isAdmin) ? 'Welcome Back!' : 'Ready to Compete?'}
             </span>
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-            {isLoggedIn
+            {isLoggedIn && (isRegistered || isAdmin)
               ? 'Head to your dashboard to manage your team and submissions.'
               : 'Register your team now and join the IUTCS Code Sprint 2026. Show the world what you can build.'}
           </p>
-          <Link href={isLoggedIn ? dashboardLink : '/login'}>
+          <Link href={isLoggedIn && (isRegistered || isAdmin) ? dashboardLink : (isLoggedIn ? '/team-registration' : '/login')}>
             <Button className="bg-accent hover:bg-accent/90 text-white px-6 sm:px-10 py-5 sm:py-7 text-base sm:text-lg h-auto group shadow-lg shadow-accent/25 hover:shadow-accent/40 hover:scale-[1.02] active:scale-[0.98] transition-all">
-              {isLoggedIn ? 'Go to Dashboard' : 'Start Registering'}
+              {isLoggedIn && (isRegistered || isAdmin) ? 'Go to Dashboard' : 'Start Registering'}
               <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
