@@ -5,6 +5,7 @@
 
 -- Step 1: Drop existing tables (this will also drop policies)
 -- ============================================
+DROP TABLE IF EXISTS public.rulebook CASCADE;
 DROP TABLE IF EXISTS public.submissions CASCADE;
 DROP TABLE IF EXISTS public.teams CASCADE;
 DROP TABLE IF EXISTS public.profiles CASCADE;
@@ -75,6 +76,19 @@ CREATE TABLE public.submission_settings (
 INSERT INTO public.submission_settings (is_submission_open, deadline)
 VALUES (true, '2026-02-28 23:59:59+06');
 
+-- Rulebook table
+CREATE TABLE public.rulebook (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  link TEXT NOT NULL,
+  published BOOLEAN DEFAULT false,
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_by UUID REFERENCES auth.users(id)
+);
+
+-- Insert default rulebook (unpublished)
+INSERT INTO public.rulebook (link, published)
+VALUES ('', false);
+
 -- Add foreign key for team_id in profiles
 ALTER TABLE public.profiles
 ADD CONSTRAINT fk_team
@@ -104,6 +118,7 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.teams ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.submission_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.rulebook ENABLE ROW LEVEL SECURITY;
 
 -- Step 6: Create RLS Policies
 -- ============================================
@@ -204,6 +219,19 @@ CREATE POLICY "submission_settings_all_admin"
   TO authenticated
   USING (public.is_admin());
 
+-- RULEBOOK POLICIES
+-- Allow anyone (including anonymous) to read rulebook
+CREATE POLICY "rulebook_select_all"
+  ON public.rulebook FOR SELECT
+  TO anon, authenticated
+  USING (true);
+
+-- Allow admins to manage rulebook
+CREATE POLICY "rulebook_all_admin"
+  ON public.rulebook FOR ALL
+  TO authenticated
+  USING (public.is_admin());
+
 -- Step 7: Grant permissions
 -- ============================================
 GRANT USAGE ON SCHEMA public TO authenticated;
@@ -211,6 +239,8 @@ GRANT ALL ON public.profiles TO authenticated;
 GRANT ALL ON public.teams TO authenticated;
 GRANT ALL ON public.submissions TO authenticated;
 GRANT ALL ON public.submission_settings TO authenticated;
+GRANT ALL ON public.rulebook TO authenticated;
+GRANT SELECT ON public.rulebook TO anon;
 GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
 
 -- ============================================
