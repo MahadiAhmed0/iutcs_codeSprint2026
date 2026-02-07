@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Zap, Users, Trophy, Code2, Sparkles, Calendar, Award, Rocket, GraduationCap, Clock, ChevronUp, Star } from 'lucide-react';
+import { ArrowRight, Zap, Users, Trophy, Code2, Sparkles, Calendar, Award, Rocket, GraduationCap, Clock, ChevronUp, Star, Mail, MessageCircle, User } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 export default function LandingPage() {
@@ -433,9 +433,9 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="relative bg-card/50 backdrop-blur-xl border-t border-border/50 py-10 sm:py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 sm:gap-12 mb-8 sm:mb-12">
-            <div className="space-y-3 sm:space-y-4 text-center sm:text-left">
-              <div className="flex items-center gap-2 sm:gap-3 justify-center sm:justify-start">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 mb-8 sm:mb-12 items-center">
+            <div className="space-y-4 sm:space-y-5 text-center md:text-left">
+              <div className="flex items-center gap-2 sm:gap-3 justify-center md:justify-start">
                 <div className="relative">
                   <div className="absolute inset-0 bg-accent/30 rounded-lg blur-md"></div>
                   <Image 
@@ -446,32 +446,41 @@ export default function LandingPage() {
                     className="relative h-7 sm:h-8 w-auto"
                   />
                 </div>
-                <span className="font-bold text-white text-base sm:text-lg">IUTCS</span>
+                <span className="font-bold text-white text-base sm:text-lg">IUTCS Code Sprint 2026</span>
               </div>
-              <p className="text-sm sm:text-base text-muted-foreground">
-                IUT Computer Society - Fostering innovation and excellence in technology
+              <p className="text-sm sm:text-base text-muted-foreground max-w-sm mx-auto md:mx-0">
+                IUT Computer Society — Fostering innovation and excellence in technology.
               </p>
             </div>
-            <div className="text-center sm:text-left">
-              <h4 className="font-semibold text-white mb-3 sm:mb-4 text-sm sm:text-base">Quick Links</h4>
-              <ul className="space-y-2 sm:space-y-3 text-muted-foreground text-sm sm:text-base">
-                <li><a href="#" className="hover:text-accent transition-colors inline-flex items-center gap-2 group"><ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 opacity-0 -ml-5 sm:-ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all hidden sm:block" />About Us</a></li>
-                <li><a href="#" className="hover:text-accent transition-colors inline-flex items-center gap-2 group"><ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 opacity-0 -ml-5 sm:-ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all hidden sm:block" />Rules & Regulations</a></li>
-                <li><a href="#" className="hover:text-accent transition-colors inline-flex items-center gap-2 group"><ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 opacity-0 -ml-5 sm:-ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all hidden sm:block" />FAQ</a></li>
-              </ul>
-            </div>
-            <div className="text-center sm:text-left sm:col-span-2 md:col-span-1">
-              <h4 className="font-semibold text-white mb-3 sm:mb-4 text-sm sm:text-base">Contact</h4>
-              <ul className="space-y-2 sm:space-y-3 text-muted-foreground text-sm sm:text-base">
-                <li className="flex items-center gap-2 justify-center sm:justify-start">
-                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-accent rounded-full"></span>
-                  Email: info@iutcs.org
-                </li>
-                <li className="flex items-center gap-2 justify-center sm:justify-start">
-                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-accent rounded-full"></span>
-                  Phone: +880 1XXX-XXXXXX
-                </li>
-              </ul>
+
+            <div className="relative bg-background/40 border border-border/50 rounded-xl sm:rounded-2xl p-5 sm:p-6 space-y-4 backdrop-blur-sm">
+              <h4 className="font-semibold text-white text-sm sm:text-base flex items-center gap-2 justify-center md:justify-start">
+                <span className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center border border-accent/20">
+                  <User className="w-4 h-4 text-accent" />
+                </span>
+                Contact
+              </h4>
+              <div className="space-y-3">
+                <div className="text-center md:text-left">
+                  <p className="text-white font-medium text-sm sm:text-base">Abdullah Al Musaddiq</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Assistant Technical Director, IUT Computer Society</p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                  <span 
+                    className="flex items-center gap-2 justify-center md:justify-start px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 text-xs sm:text-sm"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span className="select-all cursor-text">01791751468</span>
+                    <span className="text-[10px] text-green-400/60">(text only)</span>
+                  </span>
+                  <span 
+                    className="flex items-center gap-2 justify-center md:justify-start px-3 py-2 rounded-lg bg-accent/10 border border-accent/20 text-accent text-xs sm:text-sm select-all cursor-text"
+                  >
+                    <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                    musaddiq@iut-dhaka.edu
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
           <div className="border-t border-border/50 pt-6 sm:pt-8 text-center text-muted-foreground text-xs sm:text-base">
