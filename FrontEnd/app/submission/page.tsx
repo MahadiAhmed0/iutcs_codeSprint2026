@@ -494,7 +494,6 @@ export default function SubmissionPage() {
                 className="relative h-10 w-auto"
               />
             </div>
-            <span className="font-bold text-white hidden sm:inline">IUTCS</span>
          
           </Link>
           
