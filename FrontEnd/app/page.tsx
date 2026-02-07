@@ -134,11 +134,18 @@ export default function LandingPage() {
               />
             </div>
           </div>
-          <Link href="/login">
-            <Button className="bg-accent hover:bg-accent/90 text-white shadow-lg shadow-accent/20 hover:shadow-accent/40 transition-all hover:scale-105">
-              Login / Register
-            </Button>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/rulebook">
+              <Button variant="outline" className="border-border/50 text-white hover:bg-accent/10 hover:border-accent/30 transition-all hover:scale-105">
+                Rulebook
+              </Button>
+            </Link>
+            <Link href="/login">
+              <Button className="bg-accent hover:bg-accent/90 text-white shadow-lg shadow-accent/20 hover:shadow-accent/40 transition-all hover:scale-105">
+                Login / Register
+              </Button>
+            </Link>
+          </div>
         </div>
       </nav>
 
@@ -190,9 +197,11 @@ export default function LandingPage() {
                     <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
-                <button className="w-full sm:w-auto px-6 sm:px-8 py-4 sm:py-6 border border-border/50 rounded-lg text-white hover:bg-accent/5 hover:border-accent/30 transition-all backdrop-blur-sm text-base sm:text-lg">
-                  Learn More
-                </button>
+                <Link href="/rulebook" className="w-full sm:w-auto">
+                  <Button variant="outline" className="w-full sm:w-auto px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg h-auto border-border/50 text-white hover:bg-accent/5 hover:border-accent/30 transition-all backdrop-blur-sm">
+                    Rulebook
+                  </Button>
+                </Link>
               </div>
             </div>
 
