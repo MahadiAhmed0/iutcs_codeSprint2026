@@ -404,7 +404,7 @@ export default function AdminPanel() {
       {/* Navigation */}
       <nav className="border-b border-border/50 sticky top-0 z-40 bg-background/60 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3 group">
+          <Link href="/" className="flex items-center gap-3 group">
             <div className="relative">
               <div className="absolute inset-0 bg-accent/30 rounded-lg blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <Image 
@@ -418,7 +418,7 @@ export default function AdminPanel() {
             <div className="flex items-center gap-2">
               <span className="px-2 py-0.5 bg-accent/20 text-accent text-xs rounded-full border border-accent/30">Admin</span>
             </div>
-          </div>
+          </Link>
           
           <Button 
             onClick={handleSignOut}
