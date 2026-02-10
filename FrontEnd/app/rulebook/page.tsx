@@ -14,6 +14,8 @@ interface RulebookData {
   published: boolean;
 }
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export default function RulebookPage() {
   const [rulebook, setRulebook] = useState<RulebookData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,7 +34,7 @@ export default function RulebookPage() {
           // If published and has a link, open in new tab and go to landing page
           if (data.published && data.link) {
             window.open(data.link, '_blank');
-            window.location.href = '/';
+            window.location.href = `${basePath}/`;
             return;
           }
         }
@@ -72,7 +74,7 @@ export default function RulebookPage() {
             <Link href="/" className="flex items-center gap-3 group">
               <div className="relative">
                 <div className="absolute inset-0 bg-accent/30 rounded-lg blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <Image src="/iutcs-logo.png" alt="IUTCS Logo" width={40} height={40} className="relative h-10 w-auto" />
+                <Image src={`${basePath}/iutcs-logo.png`} alt="IUTCS Logo" width={40} height={40} className="relative h-10 w-auto" />
               </div>
             </Link>
           </div>
@@ -132,7 +134,7 @@ export default function RulebookPage() {
           <Link href="/" className="flex items-center gap-3 group">
             <div className="relative">
               <div className="absolute inset-0 bg-accent/30 rounded-lg blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              <Image src="/iutcs-logo.png" alt="IUTCS Logo" width={40} height={40} className="relative h-10 w-auto" />
+              <Image src={`${basePath}/iutcs-logo.png`} alt="IUTCS Logo" width={40} height={40} className="relative h-10 w-auto" />
             </div>
           </Link>
         </div>

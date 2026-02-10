@@ -29,6 +29,8 @@ interface TeamData {
   created_at: string;
 }
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export default function TeamDashboard() {
   const { user, profile, isLoading: authLoading, signOut } = useAuth();
   const router = useRouter();
@@ -130,7 +132,7 @@ export default function TeamDashboard() {
             <div className="relative">
               <div className="absolute inset-0 bg-accent/30 rounded-lg blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <Image 
-                src="/iutcs-logo.png" 
+                src={`${basePath}/iutcs-logo.png`} 
                 alt="IUTCS Logo" 
                 width={40} 
                 height={40}

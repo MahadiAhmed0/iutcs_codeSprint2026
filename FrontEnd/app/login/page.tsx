@@ -10,6 +10,8 @@ import { Chrome, ArrowLeft, Code2, Users, Trophy, Sparkles, AlertCircle } from '
 import { ScrollToTop } from '@/components/scroll-to-top';
 import { useAuth } from '@/contexts/auth-context';
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,7 +87,7 @@ export default function LoginPage() {
                 <div className="absolute inset-0 bg-accent/30 rounded-2xl blur-xl animate-pulse"></div>
                 <div className="relative w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-accent/20 to-accent/5 rounded-2xl flex items-center justify-center border border-accent/40 shadow-lg shadow-accent/20">
                   <Image 
-                    src="/iutcs-logo.png" 
+                    src={`${basePath}/iutcs-logo.png`} 
                     alt="IUTCS Logo" 
                     width={56} 
                     height={56}

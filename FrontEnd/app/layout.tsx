@@ -8,13 +8,15 @@ import './globals.css'
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export const metadata: Metadata = {
   title: 'IUTCS CodeSprint 2026',
   description: 'IUT Computer Society - Competition Management Platform',
   generator: 'Mahadi',
   icons: {
-    icon: '/iutcs-logo.png',
-    apple: '/iutcs-logo.png',
+    icon: `${basePath}/iutcs-logo.png`,
+    apple: `${basePath}/iutcs-logo.png`,
   },
   themeColor: '#ff2e3e',
 }

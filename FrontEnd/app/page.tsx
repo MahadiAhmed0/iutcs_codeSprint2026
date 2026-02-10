@@ -8,6 +8,8 @@ import { ArrowRight, Zap, Users, Trophy, Code2, Sparkles, Calendar, Award, Rocke
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/auth-context';
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export default function LandingPage() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -146,7 +148,7 @@ export default function LandingPage() {
             <div className="relative">
               <div className="absolute inset-0 bg-accent/30 rounded-lg blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <Image 
-                src="/iutcs-logo.png" 
+                src={`${basePath}/iutcs-logo.png`} 
                 alt="IUTCS Logo" 
                 width={40} 
                 height={40}
@@ -192,7 +194,7 @@ export default function LandingPage() {
                 </div>
                 <div className="flex justify-center lg:justify-start -ml-2 lg:-ml-3">
                   <Image 
-                    src="/codesprint-logo.png" 
+                    src={`${basePath}/codesprint-logo.png`} 
                     alt="Code Sprint 2026" 
                     width={1500} 
                     height={1200}
@@ -300,7 +302,7 @@ export default function LandingPage() {
           <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-border/50 shadow-2xl shadow-accent/10 group">
             <div className="absolute inset-0 bg-gradient-to-r from-accent/10 via-transparent to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <Image 
-              src="/banner.png" 
+              src={`${basePath}/banner.png`} 
               alt="Code Sprint 2026 - Organized by IUTCS" 
               width={1366} 
               height={768}
@@ -498,7 +500,7 @@ export default function LandingPage() {
                 <div className="relative">
                   <div className="absolute inset-0 bg-accent/30 rounded-lg blur-md"></div>
                   <Image 
-                    src="/iutcs-logo.png" 
+                    src={`${basePath}/iutcs-logo.png`} 
                     alt="IUTCS" 
                     width={32} 
                     height={32}

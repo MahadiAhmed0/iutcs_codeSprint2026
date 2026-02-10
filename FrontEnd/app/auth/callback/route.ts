@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 export async function GET(request: Request) {
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   const next = searchParams.get('next') ?? '/';
@@ -68,15 +69,15 @@ export async function GET(request: Request) {
       const profile = existingProfile || { role: 'participant', is_registered: false };
       
       if (profile.role === 'admin') {
-        return NextResponse.redirect(`${origin}/admin`);
+        return NextResponse.redirect(`${origin}${basePath}/admin`);
       } else if (profile.is_registered) {
-        return NextResponse.redirect(`${origin}/team-dashboard`);
+        return NextResponse.redirect(`${origin}${basePath}/team-dashboard`);
       } else {
-        return NextResponse.redirect(`${origin}/team-registration`);
+        return NextResponse.redirect(`${origin}${basePath}/team-registration`);
       }
     }
   }
 
   // Return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/login?error=auth_callback_error`);
+  return NextResponse.redirect(`${origin}${basePath}/login?error=auth_callback_error`);
 }

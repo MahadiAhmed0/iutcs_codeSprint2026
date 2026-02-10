@@ -27,6 +27,8 @@ interface SubmissionSettings {
   deadline: string | null;
 }
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export default function SubmissionPage() {
   const [step, setStep] = useState<'loading' | 'closed' | 'not_verified' | 'form' | 'success'>('loading');
   const [isLoading, setIsLoading] = useState(false);
@@ -260,7 +262,7 @@ export default function SubmissionPage() {
               <div className="relative">
                 <div className="absolute inset-0 bg-accent/30 rounded-lg blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <Image 
-                  src="/iutcs-logo.png" 
+                  src={`${basePath}/iutcs-logo.png`} 
                   alt="IUTCS Logo" 
                   width={40} 
                   height={40}
@@ -322,7 +324,7 @@ export default function SubmissionPage() {
               <div className="relative">
                 <div className="absolute inset-0 bg-accent/30 rounded-lg blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <Image 
-                  src="/iutcs-logo.png" 
+                  src={`${basePath}/iutcs-logo.png`} 
                   alt="IUTCS Logo" 
                   width={40} 
                   height={40}
@@ -384,7 +386,7 @@ export default function SubmissionPage() {
               <div className="relative">
                 <div className="absolute inset-0 bg-accent/30 rounded-lg blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <Image 
-                  src="/iutcs-logo.png" 
+                  src={`${basePath}/iutcs-logo.png`} 
                   alt="IUTCS Logo" 
                   width={40} 
                   height={40}
@@ -487,7 +489,7 @@ export default function SubmissionPage() {
             <div className="relative">
               <div className="absolute inset-0 bg-accent/30 rounded-lg blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <Image 
-                src="/iutcs-logo.png" 
+                src={`${basePath}/iutcs-logo.png`} 
                 alt="IUTCS Logo" 
                 width={40} 
                 height={40}
