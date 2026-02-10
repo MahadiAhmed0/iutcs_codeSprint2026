@@ -1239,7 +1239,7 @@ export default function TeamRegistrationPage() {
                   <div className="text-sm text-muted-foreground space-y-1">
                     <p>Send <span className="text-pink-400 font-semibold">310 BDT</span> to the following bKash number:</p>
                     <p className="text-xl font-bold text-pink-400">01791751468</p>
-                    <p className="text-xs">**Use your <span className="text-pink-400 font-semibold">TEAM NAME</span> as reference</p>
+                    <p className="text-xs">**Use your <span className="text-pink-400 font-semibold">TEAM NAME_AI&API</span> as reference : "iutcs_AI&API"</p>
                     {competitionType === 'both' && (
                       <p className="text-xs text-amber-400 mt-2">⚠ This payment is for AI & API competition only. DevOps payment will be collected separately when registration opens.</p>
                     )}

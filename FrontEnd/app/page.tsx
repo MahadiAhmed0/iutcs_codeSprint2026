@@ -507,7 +507,6 @@ export default function LandingPage() {
                     className="relative h-7 sm:h-8 w-auto"
                   />
                 </div>
-                <span className="font-bold text-white text-base sm:text-lg">IUTCS Code Sprint 2026</span>
               </div>
               <p className="text-sm sm:text-base text-muted-foreground max-w-sm mx-auto md:mx-0">
                 IUT Computer Society — Fostering innovation and excellence in technology.

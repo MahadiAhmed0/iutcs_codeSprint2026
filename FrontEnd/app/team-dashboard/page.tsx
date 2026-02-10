@@ -139,7 +139,6 @@ export default function TeamDashboard() {
                 className="relative h-10 w-auto"
               />
             </div>
-            <span className="font-bold text-white hidden sm:inline">IUTCS</span>
           </Link>
           
           <div className="flex items-center gap-4">
