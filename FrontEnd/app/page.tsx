@@ -297,23 +297,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Banner Section */}
-      <section className="relative py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
-        <div className="relative max-w-5xl mx-auto">
-          <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-border/50 shadow-2xl shadow-accent/10 group">
-            <div className="absolute inset-0 bg-gradient-to-r from-accent/10 via-transparent to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <Image 
-              src={`${basePath}/banner.png`} 
-              alt="DevSprint 2026 - Organized by IUTCS" 
-              width={1366} 
-              height={768}
-              className="w-full h-auto"
-              priority
-            />
-          </div>
-        </div>
-      </section>
-
       {/* Features Section */}
       <section className="relative py-12 sm:py-24 px-4 sm:px-6 lg:px-8">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-card/50 to-transparent pointer-events-none"></div>
