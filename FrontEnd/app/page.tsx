@@ -107,7 +107,7 @@ export default function LandingPage() {
   }, [circumference]);
 
   useEffect(() => {
-    const targetDate = new Date('2026-02-28T23:59:59').getTime();
+    const targetDate = new Date('2026-03-02T23:59:59').getTime();
 
     const calculateTimeLeft = () => {
       const now = new Date().getTime();
@@ -157,6 +157,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+           
             <Link href="/rulebook">
               <Button variant="outline" className="border-border/50 text-white hover:bg-accent/10 hover:border-accent/30 transition-all hover:scale-105">
                 Rulebook
@@ -195,7 +196,7 @@ export default function LandingPage() {
                 <div className="flex justify-center lg:justify-start -ml-2 lg:-ml-3">
                   <Image 
                     src={`${basePath}/codesprint-logo.png`} 
-                    alt="Code Sprint 2026" 
+                    alt="DevSprint 2026" 
                     width={1500} 
                     height={1200}
                     className="w-[280px] sm:w-[360px] lg:w-[450px] h-auto drop-shadow-[0_0_30px_rgba(var(--accent-rgb),0.3)]"
@@ -274,7 +275,7 @@ export default function LandingPage() {
                 </div>
                 
                 <p className="text-sm sm:text-base text-muted-foreground">
-                  Feb 28, 2026 • 11:59 PM
+                  Mar 2, 2026 • 11:59 PM
                 </p>
                 
                 {/* Live badge */}
@@ -303,7 +304,7 @@ export default function LandingPage() {
             <div className="absolute inset-0 bg-gradient-to-r from-accent/10 via-transparent to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <Image 
               src={`${basePath}/banner.png`} 
-              alt="Code Sprint 2026 - Organized by IUTCS" 
+              alt="DevSprint 2026 - Organized by IUTCS" 
               width={1366} 
               height={768}
               className="w-full h-auto"
@@ -324,7 +325,7 @@ export default function LandingPage() {
             </span>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
               <span className="bg-gradient-to-r from-white via-white to-accent bg-clip-text text-transparent">
-                Why Join Code Sprint?
+                Why Join DevSprint?
               </span>
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
@@ -435,32 +436,19 @@ export default function LandingPage() {
 
           <div className="space-y-3 sm:space-y-6">
             {[
-              { date: 'Jan 15, 2026', event: 'Registration Opens', status: 'completed' },
-              { date: 'Feb 28, 2026', event: 'Submission Deadline', status: 'active' },
-              { date: 'Mar 15, 2026', event: 'Final Review', status: 'upcoming' },
-              { date: 'Mar 30, 2026', event: 'Results Announcement', status: 'upcoming' }
+              { date: 'Feb 19, 2026', event: 'Registration Opens', status: 'done' },
+              { date: 'Feb 23, 2026', event: 'Problem Statement Released', status: 'done' },
+              { date: 'Mar 2, 2026', event: 'Submission Deadline', status: 'done' },
             ].map((item, idx) => (
               <div 
                 key={idx} 
-                className={`flex items-center gap-3 sm:gap-6 p-4 sm:p-6 rounded-xl sm:rounded-2xl border transition-all ${
-                  item.status === 'active' 
-                    ? 'bg-accent/10 border-accent/50 shadow-lg shadow-accent/10' 
-                    : 'bg-card/80 border-border/50 backdrop-blur-xl'
-                }`}
+                className="flex items-center gap-3 sm:gap-6 p-4 sm:p-6 rounded-xl sm:rounded-2xl border transition-all bg-card/80 border-border/50 backdrop-blur-xl"
               >
-                <div className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full flex-shrink-0 ${
-                  item.status === 'completed' ? 'bg-green-500' : 
-                  item.status === 'active' ? 'bg-accent animate-pulse' : 'bg-muted-foreground/30'
-                }`}></div>
+                <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full flex-shrink-0 bg-accent/60"></div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm sm:text-lg font-semibold text-white truncate">{item.event}</p>
                   <p className="text-xs sm:text-base text-muted-foreground">{item.date}</p>
                 </div>
-                {item.status === 'active' && (
-                  <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-accent/20 text-accent text-xs sm:text-sm rounded-full font-medium flex-shrink-0">
-                    Current
-                  </span>
-                )}
               </div>
             ))}
           </div>
@@ -480,7 +468,7 @@ export default function LandingPage() {
           <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
             {isLoggedIn && (isRegistered || isAdmin)
               ? 'Head to your dashboard to manage your team and submissions.'
-              : 'Register your team now and join the IUTCS Code Sprint 2026. Show the world what you can build.'}
+              : 'Register your team now and join the IUTCS DevSprint 2026. Show the world what you can build.'}
           </p>
           <Link href={isLoggedIn && (isRegistered || isAdmin) ? dashboardLink : (isLoggedIn ? '/team-registration' : '/login')}>
             <Button className="bg-accent hover:bg-accent/90 text-white px-6 sm:px-10 py-5 sm:py-7 text-base sm:text-lg h-auto group shadow-lg shadow-accent/25 hover:shadow-accent/40 hover:scale-[1.02] active:scale-[0.98] transition-all">
@@ -522,23 +510,27 @@ export default function LandingPage() {
               </h4>
               <div className="space-y-3">
                 <div className="text-center md:text-left">
-                  <p className="text-white font-medium text-sm sm:text-base">Abdullah Al Musaddiq</p>
-                  <p className="text-xs sm:text-sm text-muted-foreground">Assistant Technical Director, IUT Computer Society</p>
+                  <p className="text-white font-medium text-sm sm:text-base">Abrar Mahmud Hasan</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Joint Secretary, IUT Computer Society</p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                  <span 
-                    className="flex items-center gap-2 justify-center md:justify-start px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 text-xs sm:text-sm"
+                  <a
+                    href="https://wa.me/8801793241773"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 justify-center md:justify-start px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 text-xs sm:text-sm hover:bg-green-500/20 hover:border-green-500/40 transition-colors"
                   >
                     <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                    <span className="select-all cursor-text">01791751468</span>
-                    <span className="text-[10px] text-green-400/60">(text only)</span>
-                  </span>
-                  <span 
-                    className="flex items-center gap-2 justify-center md:justify-start px-3 py-2 rounded-lg bg-accent/10 border border-accent/20 text-accent text-xs sm:text-sm select-all cursor-text"
+                    <span>01793241773</span>
+                    <span className="text-[10px] text-green-400/60">(WhatsApp)</span>
+                  </a>
+                  <a
+                    href="mailto:abrarhasan@iut-dhaka.edu"
+                    className="flex items-center gap-2 justify-center md:justify-start px-3 py-2 rounded-lg bg-accent/10 border border-accent/20 text-accent text-xs sm:text-sm hover:bg-accent/20 hover:border-accent/40 transition-colors"
                   >
                     <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                    musaddiq@iut-dhaka.edu
-                  </span>
+                    abrarhasan@iut-dhaka.edu
+                  </a>
                 </div>
               </div>
             </div>

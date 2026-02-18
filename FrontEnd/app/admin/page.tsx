@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { LogOut, Search, Eye, Check, X, Filter, ChevronDown, Users, FileText, CheckCircle, Shield, Sparkles, AlertTriangle, Loader2, Download, DollarSign, Settings, BookOpen } from 'lucide-react';
+import { LogOut, Search, Eye, Check, X, Filter, ChevronDown, Users, FileText, CheckCircle, Shield, Sparkles, AlertTriangle, Loader2, Download, DollarSign, Settings, BookOpen, Lock } from 'lucide-react';
 import { ScrollToTop } from '@/components/scroll-to-top';
 import { useAuth } from '@/contexts/auth-context';
 import { createClient } from '@/lib/supabase/client';
@@ -26,7 +26,6 @@ interface Team {
   nationality: string;
   transaction_id: string;
   payment_status: string;
-  competition_type: string;
   members: Array<{ name: string; studentId: string; phone?: string; nationality?: string; email?: string }>;
   submission_status: string;
   created_at: string;
@@ -52,7 +51,6 @@ interface VerificationData {
   teamId: string;
   teamName: string;
   transactionId: string;
-  competitionType: string;
   status: VerificationStatus;
   submittedAt: string;
 }
@@ -76,10 +74,12 @@ export default function AdminPanel() {
   const [submissionDeadline, setSubmissionDeadline] = useState('');
   const [isTogglingSubmission, setIsTogglingSubmission] = useState(false);
   const [isSavingDeadline, setIsSavingDeadline] = useState(false);
-  const [rulebookLink, setRulebookLink] = useState('');
   const [isRulebookPublished, setIsRulebookPublished] = useState(false);
   const [isTogglingRulebook, setIsTogglingRulebook] = useState(false);
-  const [isSavingRulebookLink, setIsSavingRulebookLink] = useState(false);
+  const [isProblemStatementReleased, setIsProblemStatementReleased] = useState(false);
+  const [problemStatementPdfLink, setProblemStatementPdfLink] = useState('');
+  const [isTogglingProblemStatement, setIsTogglingProblemStatement] = useState(false);
+  const [isSavingProblemStatementLink, setIsSavingProblemStatementLink] = useState(false);
   
   // Confirmation dialog state
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -193,14 +193,26 @@ export default function AdminPanel() {
       const fetchRulebookSettings = async () => {
         const { data } = await supabase
           .from('rulebook')
-          .select('link, published')
+          .select('published')
           .single();
         if (data) {
-          setRulebookLink(data.link || '');
           setIsRulebookPublished(data.published);
         }
       };
       fetchRulebookSettings();
+
+      // Fetch problem statement settings
+      const fetchProblemStatementSettings = async () => {
+        const { data } = await supabase
+          .from('problem_statement')
+          .select('is_released, pdf_link')
+          .single();
+        if (data) {
+          setIsProblemStatementReleased(data.is_released);
+          setProblemStatementPdfLink(data.pdf_link || '');
+        }
+      };
+      fetchProblemStatementSettings();
     }
   }, [profile, authLoading, supabase]);
 
@@ -258,14 +270,27 @@ export default function AdminPanel() {
     setIsTogglingRulebook(false);
   };
 
-  const saveRulebookLink = async () => {
-    if (!rulebookLink) return;
-    setIsSavingRulebookLink(true);
+  const toggleProblemStatementReleased = async () => {
+    setIsTogglingProblemStatement(true);
+    const newValue = !isProblemStatementReleased;
     const { error } = await supabase
-      .from('rulebook')
-      .update({ link: rulebookLink, updated_at: new Date().toISOString(), updated_by: user?.id })
+      .from('problem_statement')
+      .update({ is_released: newValue, updated_at: new Date().toISOString() })
       .not('id', 'is', null);
-    setIsSavingRulebookLink(false);
+    if (!error) {
+      setIsProblemStatementReleased(newValue);
+    }
+    setIsTogglingProblemStatement(false);
+  };
+
+  const saveProblemStatementLink = async () => {
+    if (!problemStatementPdfLink.trim()) return;
+    setIsSavingProblemStatementLink(true);
+    await supabase
+      .from('problem_statement')
+      .update({ pdf_link: problemStatementPdfLink.trim(), updated_at: new Date().toISOString() })
+      .not('id', 'is', null);
+    setIsSavingProblemStatementLink(false);
   };
 
   // Loading state
@@ -306,7 +331,6 @@ export default function AdminPanel() {
     teamId: team.id,
     teamName: team.name,
     transactionId: team.transaction_id,
-    competitionType: team.competition_type || 'ai_api',
     status: (team.payment_status || 'pending') as VerificationStatus,
     submittedAt: new Date(team.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
   }));
@@ -343,26 +367,6 @@ export default function AdminPanel() {
     totalVerified: verifiedTeams.length,
     totalRevenue: verifiedTeams.length * 300,
   };
-
-  // Competition type breakdown ("both" adds +1 to each category)
-  const competitionStats = (() => {
-    let aiApi = 0;
-    let devops = 0;
-    let both = 0;
-    verifiedTeams.forEach(team => {
-      const ct = team.competition_type || 'ai_api';
-      if (ct === 'both') {
-        both++;
-        aiApi++;
-        devops++;
-      } else if (ct === 'devops') {
-        devops++;
-      } else {
-        aiApi++;
-      }
-    });
-    return { aiApi, devops, both, total: verifiedTeams.length };
-  })();
 
   // Handle opening confirmation dialog
   const openConfirmDialog = (action: 'approve' | 'reject', teamId: string, teamName: string) => {
@@ -506,7 +510,7 @@ export default function AdminPanel() {
       return;
     }
     
-    const headers = ['Team Name', 'Leader Name', 'Leader Email', 'Leader Phone', 'Leader Student ID', 'Department', 'Nationality', 'Competition Type', 'Transaction ID', 'Members Count', 'Member Names', 'Registered At'];
+    const headers = ['Team Name', 'Leader Name', 'Leader Email', 'Leader Phone', 'Leader Student ID', 'Department', 'Nationality', 'Transaction ID', 'Members Count', 'Member Names', 'Registered At'];
     const rows = verifiedTeams.map(team => [
       team.name,
       team.leader_name,
@@ -515,7 +519,6 @@ export default function AdminPanel() {
       team.leader_student_id,
       team.department,
       team.nationality,
-      team.competition_type === 'both' ? 'Both' : team.competition_type === 'devops' ? 'DevOps' : 'AI & API',
       team.transaction_id,
       (team.members?.length || 0) + 1,
       team.members?.map(m => m.name).join('; ') || '',
@@ -701,93 +704,6 @@ export default function AdminPanel() {
           </Card>
         </div>
 
-        {/* Competition Breakdown */}
-        <Card className="bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-xl border border-border/50 p-4 sm:p-6 shadow-xl">
-          <div className="flex flex-col md:flex-row items-center gap-6 sm:gap-8">
-            {/* Pie Chart */}
-            <div className="relative flex-shrink-0">
-              <svg width="180" height="180" viewBox="0 0 180 180" className="sm:w-[220px] sm:h-[220px]">
-                {(() => {
-                  const total = competitionStats.aiApi + competitionStats.devops;
-                  if (total === 0) {
-                    return <circle cx="90" cy="90" r="70" fill="none" stroke="currentColor" strokeWidth="28" className="text-border/30" />;
-                  }
-                  const aiPct = competitionStats.aiApi / total;
-                  const devopsPct = competitionStats.devops / total;
-                  const r = 70;
-                  const c = 2 * Math.PI * r;
-                  const aiLen = aiPct * c;
-                  const devopsLen = devopsPct * c;
-                  return (
-                    <>
-                      {/* DevOps segment */}
-                      <circle cx="90" cy="90" r={r} fill="none" stroke="#06b6d4" strokeWidth="28" strokeDasharray={`${devopsLen} ${c - devopsLen}`} strokeDashoffset={c * 0.25} className="transition-all duration-700" style={{ filter: 'drop-shadow(0 0 6px rgba(6,182,212,0.3))' }} />
-                      {/* AI & API segment */}
-                      <circle cx="90" cy="90" r={r} fill="none" stroke="#3b82f6" strokeWidth="28" strokeDasharray={`${aiLen} ${c - aiLen}`} strokeDashoffset={c * 0.25 - devopsLen} className="transition-all duration-700" style={{ filter: 'drop-shadow(0 0 6px rgba(59,130,246,0.3))' }} />
-                      {/* Center text */}
-                      <text x="90" y="82" textAnchor="middle" className="fill-white text-2xl sm:text-3xl font-bold" style={{ fontSize: '28px', fontWeight: 700 }}>{competitionStats.total}</text>
-                      <text x="90" y="104" textAnchor="middle" className="fill-muted-foreground" style={{ fontSize: '11px' }}>Total Teams</text>
-                    </>
-                  );
-                })()}
-              </svg>
-            </div>
-
-            {/* Legend + Stats */}
-            <div className="flex-1 w-full space-y-3 sm:space-y-4">
-              <h3 className="text-sm sm:text-base font-semibold text-white flex items-center gap-2">
-                Competition Breakdown
-              </h3>
-              
-              {/* AI & API */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-blue-500 shadow-lg shadow-blue-500/30"></div>
-                    <span className="text-xs sm:text-sm text-muted-foreground">AI & API</span>
-                  </div>
-                  <span className="text-sm sm:text-base font-bold text-white">{competitionStats.aiApi}</span>
-                </div>
-                <div className="h-1.5 bg-background/50 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full transition-all duration-700" style={{ width: `${competitionStats.total > 0 ? (competitionStats.aiApi / (competitionStats.aiApi + competitionStats.devops)) * 100 : 0}%` }}></div>
-                </div>
-              </div>
-
-              {/* DevOps */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-cyan-500 shadow-lg shadow-cyan-500/30"></div>
-                    <span className="text-xs sm:text-sm text-muted-foreground">DevOps</span>
-                  </div>
-                  <span className="text-sm sm:text-base font-bold text-white">{competitionStats.devops}</span>
-                </div>
-                <div className="h-1.5 bg-background/50 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full transition-all duration-700" style={{ width: `${competitionStats.total > 0 ? (competitionStats.devops / (competitionStats.aiApi + competitionStats.devops)) * 100 : 0}%` }}></div>
-                </div>
-              </div>
-
-              {/* Both */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-purple-500 shadow-lg shadow-purple-500/30"></div>
-                    <span className="text-xs sm:text-sm text-muted-foreground">Both (counted in each)</span>
-                  </div>
-                  <span className="text-sm sm:text-base font-bold text-white">{competitionStats.both}</span>
-                </div>
-                <div className="h-1.5 bg-background/50 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-purple-500 to-purple-400 rounded-full transition-all duration-700" style={{ width: `${competitionStats.total > 0 ? (competitionStats.both / competitionStats.total) * 100 : 0}%` }}></div>
-                </div>
-              </div>
-
-              <p className="text-[10px] sm:text-xs text-muted-foreground/60 pt-1 border-t border-border/30">
-                Teams that selected &quot;Both&quot; are counted once in each category
-              </p>
-            </div>
-          </div>
-        </Card>
-
         {/* Download All Teams Button */}
         <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
           <Button 
@@ -900,7 +816,6 @@ export default function AdminPanel() {
                     <tr>
                       <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Team Name</th>
                       <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Leader</th>
-                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Competition</th>
                       <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Members</th>
                       <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Status</th>
                       <th className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-semibold text-white">Action</th>
@@ -911,15 +826,6 @@ export default function AdminPanel() {
                       <tr key={team.id} className="hover:bg-accent/5 transition-colors">
                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-white font-medium text-sm">{team.name}</td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-muted-foreground text-sm">{team.leader_name}</td>
-                        <td className="px-3 sm:px-6 py-3 sm:py-4">
-                          <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold border ${
-                            team.competition_type === 'both' ? 'bg-purple-500/10 text-purple-300 border-purple-500/30' :
-                            team.competition_type === 'devops' ? 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30' :
-                            'bg-blue-500/10 text-blue-300 border-blue-500/30'
-                          }`}>
-                            {team.competition_type === 'both' ? 'Both' : team.competition_type === 'devops' ? 'DevOps' : 'AI & API'}
-                          </span>
-                        </td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-white text-sm">{(team.members?.length || 0) + 1}</td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4">
                           <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold border ${
@@ -984,12 +890,8 @@ export default function AdminPanel() {
                       <span className="inline-block px-3 py-1 bg-green-500/10 text-green-300 border border-green-500/30 rounded-full text-xs font-semibold">
                         Payment Verified
                       </span>
-                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border ${
-                        selectedTeam.competition_type === 'both' ? 'bg-purple-500/10 text-purple-300 border-purple-500/30' :
-                        selectedTeam.competition_type === 'devops' ? 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30' :
-                        'bg-blue-500/10 text-blue-300 border-blue-500/30'
-                      }`}>
-                        {selectedTeam.competition_type === 'both' ? 'Both Competitions' : selectedTeam.competition_type === 'devops' ? 'DevOps' : 'AI & API'}
+                      <span className="inline-block px-3 py-1 bg-blue-500/10 text-blue-300 border border-blue-500/30 rounded-full text-xs font-semibold">
+                        AI & API
                       </span>
                     </div>
                   </div>
@@ -1325,7 +1227,6 @@ export default function AdminPanel() {
                     <tr>
                       <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Team Name</th>
                       <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Transaction ID</th>
-                      <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Competition</th>
                       <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Registered</th>
                       <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white">Status</th>
                       <th className="px-3 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-semibold text-white">Action</th>
@@ -1336,15 +1237,6 @@ export default function AdminPanel() {
                       <tr key={item.id} className="hover:bg-accent/5 transition-colors">
                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-white font-medium text-sm">{item.teamName}</td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-muted-foreground text-xs sm:text-sm font-mono">{item.transactionId}</td>
-                        <td className="px-3 sm:px-6 py-3 sm:py-4">
-                          <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold border ${
-                            item.competitionType === 'both' ? 'bg-purple-500/10 text-purple-300 border-purple-500/30' :
-                            item.competitionType === 'devops' ? 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30' :
-                            'bg-blue-500/10 text-blue-300 border-blue-500/30'
-                          }`}>
-                            {item.competitionType === 'both' ? 'Both' : item.competitionType === 'devops' ? 'DevOps' : 'AI & API'}
-                          </span>
-                        </td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4 text-muted-foreground text-xs sm:text-sm">{item.submittedAt}</td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4">
                           <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold border ${
@@ -1531,30 +1423,75 @@ export default function AdminPanel() {
                     </button>
                   </div>
 
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2.5 h-2.5 rounded-full ${isRulebookPublished ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                    <span className={`text-sm font-medium ${isRulebookPublished ? 'text-green-400' : 'text-red-400'}`}>
+                      {isRulebookPublished ? 'Published' : 'Hidden'}
+                    </span>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-5 sm:p-6 shadow-lg">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-teal-500/10 rounded-lg flex items-center justify-center border border-teal-500/20">
+                    <Lock className="w-5 h-5 text-teal-400" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-white">Problem Statement Control</h2>
+                    <p className="text-xs text-muted-foreground">Release or hide the problem statement PDF</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-background/50 rounded-xl border border-border/30">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-white">Release Problem Statement</p>
+                      <p className="text-xs text-muted-foreground">
+                        {isProblemStatementReleased
+                          ? 'Problem statement is visible to participants. Toggle off to hide it.'
+                          : 'Problem statement is hidden. Toggle on to release it to participants.'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={toggleProblemStatementReleased}
+                      disabled={isTogglingProblemStatement}
+                      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500/50 disabled:opacity-50 ${
+                        isProblemStatementReleased ? 'bg-green-500' : 'bg-muted-foreground/30'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform ${
+                          isProblemStatementReleased ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+
                   <div className="p-4 bg-background/50 rounded-xl border border-border/30 space-y-3">
-                    <p className="text-sm font-medium text-white">Rulebook Link</p>
+                    <p className="text-sm font-medium text-white">PDF Link</p>
                     <div className="flex gap-2">
-                      <Input
+                      <input
                         type="url"
-                        placeholder="https://docs.google.com/..."
-                        value={rulebookLink}
-                        onChange={(e) => setRulebookLink(e.target.value)}
-                        className="flex-1 bg-background/60 border-border/60 text-white text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                        value={problemStatementPdfLink}
+                        onChange={(e) => setProblemStatementPdfLink(e.target.value)}
+                        placeholder="https://example.com/problem-statement.pdf"
+                        className="flex-1 h-10 rounded-lg bg-background/60 border border-border/60 text-white text-sm px-3 placeholder:text-muted-foreground focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none"
                       />
                       <Button
-                        onClick={saveRulebookLink}
-                        disabled={isSavingRulebookLink || !rulebookLink}
-                        className="bg-purple-500 hover:bg-purple-500/90 text-white h-10 px-4 text-sm disabled:opacity-50"
+                        onClick={saveProblemStatementLink}
+                        disabled={isSavingProblemStatementLink || !problemStatementPdfLink.trim()}
+                        className="bg-teal-600 hover:bg-teal-600/90 text-white h-10 px-4 text-sm disabled:opacity-50"
                       >
-                        {isSavingRulebookLink ? 'Saving...' : 'Save'}
+                        {isSavingProblemStatementLink ? 'Saving...' : 'Save'}
                       </Button>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <div className={`w-2.5 h-2.5 rounded-full ${isRulebookPublished ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-                    <span className={`text-sm font-medium ${isRulebookPublished ? 'text-green-400' : 'text-red-400'}`}>
-                      {isRulebookPublished ? 'Published' : 'Hidden'}
+                    <div className={`w-2.5 h-2.5 rounded-full ${isProblemStatementReleased ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                    <span className={`text-sm font-medium ${isProblemStatementReleased ? 'text-green-400' : 'text-red-400'}`}>
+                      {isProblemStatementReleased ? 'Released' : 'Hidden'}
                     </span>
                   </div>
                 </div>

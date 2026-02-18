@@ -11,7 +11,7 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 export const metadata: Metadata = {
-  title: 'IUTCS CodeSprint 2026',
+  title: 'IUTCS DevSprint 2026',
   description: 'IUT Computer Society - Competition Management Platform',
   generator: 'Mahadi',
   icons: {

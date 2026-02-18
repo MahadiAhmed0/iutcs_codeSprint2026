@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { LogOut, Send, Settings, Users, FileText, CheckCircle, Clock, Sparkles, ArrowRight, X, Code2, Server } from 'lucide-react';
+import { LogOut, Send, Settings, Users, FileText, CheckCircle, Clock, Sparkles, ArrowRight, X } from 'lucide-react';
 import { ScrollToTop } from '@/components/scroll-to-top';
 import { useAuth } from '@/contexts/auth-context';
 import { createClient } from '@/lib/supabase/client';
@@ -38,7 +38,7 @@ export default function TeamDashboard() {
   
   const [teamData, setTeamData] = useState<TeamData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeCompetition, setActiveCompetition] = useState<'ai_api' | 'devops'>('ai_api');
+  const [isProblemStatementReleased, setIsProblemStatementReleased] = useState(false);
 
   useEffect(() => {
     const fetchTeamData = async () => {
@@ -80,6 +80,13 @@ export default function TeamDashboard() {
           return;
         }
         
+        // Fetch problem statement status
+        const { data: psData } = await supabase
+          .from('problem_statement')
+          .select('is_released')
+          .single();
+        if (psData) setIsProblemStatementReleased(psData.is_released);
+
         setIsLoading(false);
       } else if (!authLoading && !user) {
         router.push('/login');
@@ -198,54 +205,6 @@ export default function TeamDashboard() {
           </div>
         </Card>
 
-        {/* Competition Tabs */}
-        {teamData?.competition_type === 'both' && (
-          <div className="flex gap-2 bg-card/50 backdrop-blur-xl p-1.5 rounded-xl border border-border/50 w-fit">
-            <button
-              onClick={() => setActiveCompetition('ai_api')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
-                activeCompetition === 'ai_api'
-                  ? 'bg-accent text-white shadow-lg shadow-accent/25'
-                  : 'text-muted-foreground hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Code2 className="w-4 h-4" />
-              AI & API
-            </button>
-            <button
-              onClick={() => setActiveCompetition('devops')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
-                activeCompetition === 'devops'
-                  ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/25'
-                  : 'text-muted-foreground hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Server className="w-4 h-4" />
-              DevOps
-            </button>
-          </div>
-        )}
-
-        {activeCompetition === 'devops' && teamData?.competition_type === 'both' ? (
-          <Card className="bg-card/80 backdrop-blur-xl border border-purple-500/30 p-8 sm:p-12 text-center space-y-6 shadow-xl">
-            <div className="flex justify-center">
-              <div className="relative">
-                <div className="absolute inset-0 bg-purple-500/30 rounded-full blur-xl animate-pulse"></div>
-                <div className="relative w-20 h-20 bg-gradient-to-br from-purple-500/20 to-purple-500/5 rounded-full flex items-center justify-center border-2 border-purple-500/50">
-                  <Server className="w-10 h-10 text-purple-400" />
-                </div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-purple-400 bg-clip-text text-transparent">DevOps Competition</h2>
-              <p className="text-muted-foreground">Registration hasn&apos;t started for DevOps yet. Stay tuned for updates!</p>
-            </div>
-            <div className="inline-block px-4 py-2 bg-purple-500/10 border border-purple-500/30 rounded-full">
-              <span className="text-purple-400 text-sm font-medium">Coming Soon</span>
-            </div>
-          </Card>
-        ) : (
-        <>
         {/* Main Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Left Column - Quick Actions */}
@@ -301,7 +260,7 @@ export default function TeamDashboard() {
                 Problem Statement
               </h3>
               
-              {new Date() >= new Date('2026-02-14') ? (
+              {isProblemStatementReleased ? (
                 <div className="space-y-4">
                   <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
                     <p className="text-sm text-green-200 font-semibold flex items-center gap-2">
@@ -309,10 +268,12 @@ export default function TeamDashboard() {
                       Problem Statement Released!
                     </p>
                   </div>
-                  <Button className="w-full bg-accent hover:bg-accent/90 text-white gap-2 shadow-lg shadow-accent/25 hover:shadow-accent/40 hover:scale-[1.02] active:scale-[0.98] transition-all h-12">
-                    <FileText className="w-4 h-4" />
-                    View Problem Statement
-                  </Button>
+                  <Link href="/problem-statement">
+                    <Button className="w-full bg-accent hover:bg-accent/90 text-white gap-2 shadow-lg shadow-accent/25 hover:shadow-accent/40 hover:scale-[1.02] active:scale-[0.98] transition-all h-12">
+                      <FileText className="w-4 h-4" />
+                      View Problem Statement
+                    </Button>
+                  </Link>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -320,7 +281,7 @@ export default function TeamDashboard() {
                     <Clock className="w-8 h-8 text-accent mx-auto mb-2" />
                     <p className="text-sm text-white font-semibold">Coming Soon!</p>
                     <p className="text-xs text-muted-foreground mt-1">Problem statement will be released on</p>
-                    <p className="text-accent font-bold mt-2">February 14, 2026</p>
+                    <p className="text-accent font-bold mt-2">Feb 23, 2026</p>
                   </div>
                 </div>
               )}
@@ -476,27 +437,18 @@ export default function TeamDashboard() {
 
               <div className="space-y-4">
                 {[
-                  { date: 'Jan 15, 2026', event: 'Competition Opens', status: 'completed' },
-                  { date: 'Feb 28, 2026', event: 'Submission Deadline', status: 'active' },
-                  { date: 'Mar 15, 2026', event: 'Final Review', status: 'pending' },
-                  { date: 'Mar 30, 2026', event: 'Results Announcement', status: 'pending' }
-                ].map((item, idx) => (
+                  { date: 'Feb 19, 2026', event: 'Registration Opens' },
+                  { date: 'Feb 23, 2026', event: 'Problem Statement Released' },
+                  { date: 'Mar 2, 2026', event: 'Submission Deadline' },
+                ].map((item, idx, arr) => (
                   <div key={idx} className="flex gap-4">
                     <div className="flex flex-col items-center">
-                      <div className={`w-4 h-4 rounded-full border-2 ${
-                        item.status === 'completed' ? 'bg-green-500 border-green-500' : 
-                        item.status === 'active' ? 'bg-accent border-accent animate-pulse' : 'bg-transparent border-muted-foreground/30'
-                      }`}></div>
-                      {idx < 3 && <div className={`w-0.5 h-12 mt-2 ${
-                        item.status === 'completed' ? 'bg-green-500/50' : 'bg-border/50'
-                      }`}></div>}
+                      <div className="w-4 h-4 rounded-full border-2 bg-accent/60 border-accent/60"></div>
+                      {idx < arr.length - 1 && <div className="w-0.5 h-12 mt-2 bg-border/50"></div>}
                     </div>
-                    <div className={`pb-4 ${item.status === 'active' ? 'bg-accent/5 -ml-2 pl-4 pr-4 py-2 rounded-xl border border-accent/20' : ''}`}>
-                      <p className={`font-medium ${item.status === 'active' ? 'text-accent' : 'text-white'}`}>{item.event}</p>
+                    <div className="pb-4">
+                      <p className="font-medium text-white">{item.event}</p>
                       <p className="text-muted-foreground text-sm">{item.date}</p>
-                      {item.status === 'active' && (
-                        <span className="inline-block mt-2 px-2 py-0.5 bg-accent/20 text-accent text-xs rounded-full">Current</span>
-                      )}
                     </div>
                   </div>
                 ))}
@@ -504,8 +456,6 @@ export default function TeamDashboard() {
             </Card>
           </div>
         </div>
-        </>
-        )}
       </div>
 
       <ScrollToTop />
