@@ -381,12 +381,12 @@ export default function LandingPage() {
       {/* Stats Section */}
       <section className="relative py-12 sm:py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 max-w-3xl mx-auto">
             {[
               { label: 'Total Teams', value: stats.totalTeams || '0', icon: Users },
               { label: 'Participants', value: stats.totalParticipants || '0', icon: Code2 },
               { label: 'Prize Pool', value: 'Exciting', icon: Trophy },
-              { label: '1st Year Prize', value: 'Guaranteed', icon: Star, highlight: true }
+            
             ].map((stat, idx) => (
               <div 
                 key={idx} 
