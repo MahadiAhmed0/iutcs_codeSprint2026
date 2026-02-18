@@ -17,6 +17,7 @@ const sections = [
   { id: 'repository-submission', label: 'Repository & Submission' },
   { id: 'deliverables', label: 'Deliverables' },
   { id: 'evaluation', label: 'Evaluation & Presentation' },
+  { id: 'example', label: 'An Example' },
 ];
 
 export default function RulebookPage() {
@@ -310,8 +311,115 @@ export default function RulebookPage() {
               </Card>
             </section>
 
-            {/* Contact / Helpline */}
-            <section className="scroll-mt-24">
+            {/* Section 7: An Example */}
+            <section id="example" className="scroll-mt-24">
+              <Card className="bg-card/60 backdrop-blur-xl border border-border/40 p-7 shadow-lg hover:border-teal-500/30 transition-colors">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-9 h-9 bg-teal-500/20 rounded-lg flex items-center justify-center shrink-0">
+                    <BookOpen className="w-5 h-5 text-teal-400" />
+                  </div>
+                  <h2 className="text-xl font-bold text-white">An Example</h2>
+                </div>
+
+                {/* Intro */}
+                <p className="text-muted-foreground text-[15px] leading-relaxed mb-6">
+                  This is the story of <strong className="text-teal-400">MoodThanda</strong>, a food-tech startup that&apos;s about to go from a local favorite to a digital powerhouse. To get there, we need to build more than just an app; we need a living, breathing digital ecosystem.
+                </p>
+
+                {/* Story block */}
+                <div className="bg-teal-500/5 border border-teal-500/20 rounded-xl p-5 mb-6 space-y-3">
+                  <h3 className="text-base font-semibold text-teal-300">The MoodThanda Story: Scaling the Flavor</h3>
+                  <p className="text-muted-foreground text-[15px] leading-relaxed">
+                    Imagine MoodThanda on a busy Friday night. The kitchen is buzzing, the aroma of spices fills the air, and online orders are pouring in. Right now, the business is thriving, but the technology behind it needs to evolve. We aren&apos;t just building a menu; we are building a platform that can handle a massive surge of hungry customers during a seasonal festival without breaking a sweat.
+                  </p>
+                  <p className="text-muted-foreground text-[15px] leading-relaxed">
+                    As the lead architect, your mission is to move away from a single, clunky system and toward a <strong className="text-white">Microservice Architecture</strong>. This means if the notification system hits a snag, customers can still browse the menu and place orders. It&apos;s about building a resilient, &quot;always-on&quot; experience where updates happen behind the scenes while the milkshakes keep flowing.
+                  </p>
+                </div>
+
+                {/* Services */}
+                <div className="mb-6">
+                  <h3 className="text-base font-semibold text-white mb-3">The Core Ingredients (Our Services)</h3>
+                  <p className="text-muted-foreground text-[15px] leading-relaxed mb-4">
+                    To keep things simple yet powerful for our initial launch, we are decomposing MoodThanda into five essential services:
+                  </p>
+                  <ul className="space-y-2.5">
+                    {[
+                      { name: 'Authentication Service', role: 'The "Bouncer."', desc: 'It ensures every user is who they say they are.' },
+                      { name: 'Menu Service', role: 'The "Digital Catalog."', desc: 'This serves up images, descriptions, and real-time pricing.' },
+                      { name: 'Inventory Service', role: 'The "Stock Keeper."', desc: 'It tracks if we have enough ingredients for that midnight craving.' },
+                      { name: 'Notification Service', role: 'The "Messenger."', desc: 'It sends the "Order Received" and "Out for Delivery" alerts.' },
+                      { name: 'Monitoring Service', role: 'The "Doctor."', desc: 'It watches the health of all services to ensure 100% uptime.' },
+                    ].map((s, i) => (
+                      <li key={i} className="flex gap-3 text-[15px] leading-relaxed">
+                        <span className="mt-1 w-5 h-5 rounded-full bg-teal-500/20 border border-teal-500/40 flex items-center justify-center text-teal-400 text-xs font-bold shrink-0">{i + 1}</span>
+                        <span><strong className="text-white">{s.name}:</strong> <span className="text-teal-300/80 italic">{s.role}</span> <span className="text-muted-foreground">{s.desc}</span></span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Mission Tasks */}
+                <div>
+                  <h3 className="text-base font-semibold text-white mb-3">Your Mission Tasks</h3>
+                  <p className="text-muted-foreground text-[15px] leading-relaxed mb-4">
+                    To bring the MoodThanda platform to life, we will focus on these key architectural milestones:
+                  </p>
+                  <ul className="space-y-4">
+                    {[
+                      {
+                        title: 'Design the Modular Blueprint',
+                        desc: "Break the platform into the five services mentioned above. You'll need to decide how they \"talk\" to each other so that if the Menu Service updates a price, the rest of the system stays in sync.",
+                        sub: null,
+                      },
+                      {
+                        title: 'Architect for Growth & Resilience',
+                        desc: "Design the system so each service can scale independently. If everyone is checking the menu but no one is ordering yet, we should be able to boost the Menu Service's power without wasting resources elsewhere.",
+                        sub: null,
+                      },
+                      {
+                        title: 'Implement "Quality Control" (Testing & CI)',
+                        desc: 'To ensure no "bugs" end up in our digital kitchen, you must:',
+                        sub: [
+                          'Write 2–3 Unit Tests for a core service (e.g., testing if the Inventory Service correctly rejects an order when stock is zero).',
+                          'Build a CI (Continuous Integration) Pipeline that automatically runs these tests every time a developer submits new code. If the tests fail, the code is blocked from entering the system.',
+                        ],
+                      },
+                      {
+                        title: 'Build the "Auto-Heal" Logic',
+                        desc: "Configure the platform to be fault-tolerant. If the Notification Service fails, the system should be designed to restart it automatically so the core ordering process doesn't crash.",
+                        sub: null,
+                      },
+                      {
+                        title: 'Eyes on the Engine (Monitoring)',
+                        desc: 'Set up a centralized dashboard. We need to see real-time traffic spikes and error logs in one place so we can fix issues before a single customer notices a delay.',
+                        sub: null,
+                      },
+                    ].map((task, i) => (
+                      <li key={i} className="flex gap-3 text-[15px] leading-relaxed">
+                        <span className="mt-1 w-5 h-5 rounded-full bg-teal-500/20 border border-teal-500/40 flex items-center justify-center text-teal-400 text-xs font-bold shrink-0">{i + 1}</span>
+                        <span className="flex-1">
+                          <strong className="text-white">{task.title}:</strong>{' '}
+                          <span className="text-muted-foreground">{task.desc}</span>
+                          {task.sub && (
+                            <ul className="mt-2 space-y-1.5 pl-1">
+                              {task.sub.map((s, j) => (
+                                <li key={j} className="flex gap-2 text-muted-foreground">
+                                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-teal-400/60 shrink-0"></span>
+                                  <span>{s}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </Card>
+            </section>
+
+            {/* Contact / Helpline */}            <section className="scroll-mt-24">
               <Card className="bg-gradient-to-br from-accent/10 via-card/60 to-purple-500/10 backdrop-blur-xl border border-accent/30 p-7 shadow-xl">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="w-9 h-9 bg-accent/20 rounded-lg flex items-center justify-center shrink-0">

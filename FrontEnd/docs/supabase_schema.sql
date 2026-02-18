@@ -1,11 +1,12 @@
 -- ============================================
--- IUTCS Code Sprint 2026 - Database Schema
+-- IUTCS DevSprint 2026 - Database Schema
 -- Run this in Supabase SQL Editor
 -- ============================================
 
 -- Step 1: Drop existing tables (this will also drop policies)
 -- ============================================
 DROP TABLE IF EXISTS public.rulebook CASCADE;
+DROP TABLE IF EXISTS public.problem_statement CASCADE;
 DROP TABLE IF EXISTS public.submissions CASCADE;
 DROP TABLE IF EXISTS public.teams CASCADE;
 DROP TABLE IF EXISTS public.profiles CASCADE;
@@ -100,6 +101,19 @@ CREATE TABLE public.rulebook (
 INSERT INTO public.rulebook (published)
 VALUES (false);
 
+-- Problem Statement table
+-- NOTE: No write RLS policies — can only be modified via Supabase dashboard or service role key
+CREATE TABLE public.problem_statement (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  is_released BOOLEAN DEFAULT false,
+  pdf_link TEXT,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Insert default problem statement (unreleased)
+INSERT INTO public.problem_statement (is_released, pdf_link)
+VALUES (false, null);
+
 -- Add foreign key for team_id in profiles
 ALTER TABLE public.profiles
 ADD CONSTRAINT fk_team
@@ -131,6 +145,7 @@ ALTER TABLE public.submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.submission_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.registration_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.rulebook ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.problem_statement ENABLE ROW LEVEL SECURITY;
 
 -- Step 6: Create RLS Policies
 -- ============================================
@@ -257,6 +272,19 @@ CREATE POLICY "rulebook_all_admin"
   TO authenticated
   USING (public.is_admin());
 
+-- PROBLEM STATEMENT POLICIES
+-- Allow anyone to read the problem statement (to check if released)
+CREATE POLICY "problem_statement_select_all"
+  ON public.problem_statement FOR SELECT
+  TO anon, authenticated
+  USING (true);
+
+-- Allow admins to update the problem statement (toggle release, set PDF link)
+CREATE POLICY "problem_statement_update_admin"
+  ON public.problem_statement FOR UPDATE
+  TO authenticated
+  USING (public.is_admin());
+
 -- Step 7: Grant permissions
 -- ============================================
 GRANT USAGE ON SCHEMA public TO authenticated;
@@ -267,6 +295,8 @@ GRANT ALL ON public.submission_settings TO authenticated;
 GRANT ALL ON public.registration_settings TO authenticated;
 GRANT ALL ON public.rulebook TO authenticated;
 GRANT SELECT ON public.rulebook TO anon;
+GRANT SELECT ON public.problem_statement TO anon;
+GRANT ALL ON public.problem_statement TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
 
 -- ============================================

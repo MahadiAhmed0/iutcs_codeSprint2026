@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { LogOut, Search, Eye, Check, X, Filter, ChevronDown, Users, FileText, CheckCircle, Shield, Sparkles, AlertTriangle, Loader2, Download, DollarSign, Settings, BookOpen } from 'lucide-react';
+import { LogOut, Search, Eye, Check, X, Filter, ChevronDown, Users, FileText, CheckCircle, Shield, Sparkles, AlertTriangle, Loader2, Download, DollarSign, Settings, BookOpen, Lock } from 'lucide-react';
 import { ScrollToTop } from '@/components/scroll-to-top';
 import { useAuth } from '@/contexts/auth-context';
 import { createClient } from '@/lib/supabase/client';
@@ -76,6 +76,10 @@ export default function AdminPanel() {
   const [isSavingDeadline, setIsSavingDeadline] = useState(false);
   const [isRulebookPublished, setIsRulebookPublished] = useState(false);
   const [isTogglingRulebook, setIsTogglingRulebook] = useState(false);
+  const [isProblemStatementReleased, setIsProblemStatementReleased] = useState(false);
+  const [problemStatementPdfLink, setProblemStatementPdfLink] = useState('');
+  const [isTogglingProblemStatement, setIsTogglingProblemStatement] = useState(false);
+  const [isSavingProblemStatementLink, setIsSavingProblemStatementLink] = useState(false);
   
   // Confirmation dialog state
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -196,6 +200,19 @@ export default function AdminPanel() {
         }
       };
       fetchRulebookSettings();
+
+      // Fetch problem statement settings
+      const fetchProblemStatementSettings = async () => {
+        const { data } = await supabase
+          .from('problem_statement')
+          .select('is_released, pdf_link')
+          .single();
+        if (data) {
+          setIsProblemStatementReleased(data.is_released);
+          setProblemStatementPdfLink(data.pdf_link || '');
+        }
+      };
+      fetchProblemStatementSettings();
     }
   }, [profile, authLoading, supabase]);
 
@@ -251,6 +268,29 @@ export default function AdminPanel() {
       setIsRulebookPublished(newValue);
     }
     setIsTogglingRulebook(false);
+  };
+
+  const toggleProblemStatementReleased = async () => {
+    setIsTogglingProblemStatement(true);
+    const newValue = !isProblemStatementReleased;
+    const { error } = await supabase
+      .from('problem_statement')
+      .update({ is_released: newValue, updated_at: new Date().toISOString() })
+      .not('id', 'is', null);
+    if (!error) {
+      setIsProblemStatementReleased(newValue);
+    }
+    setIsTogglingProblemStatement(false);
+  };
+
+  const saveProblemStatementLink = async () => {
+    if (!problemStatementPdfLink.trim()) return;
+    setIsSavingProblemStatementLink(true);
+    await supabase
+      .from('problem_statement')
+      .update({ pdf_link: problemStatementPdfLink.trim(), updated_at: new Date().toISOString() })
+      .not('id', 'is', null);
+    setIsSavingProblemStatementLink(false);
   };
 
   // Loading state
@@ -1387,6 +1427,71 @@ export default function AdminPanel() {
                     <div className={`w-2.5 h-2.5 rounded-full ${isRulebookPublished ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
                     <span className={`text-sm font-medium ${isRulebookPublished ? 'text-green-400' : 'text-red-400'}`}>
                       {isRulebookPublished ? 'Published' : 'Hidden'}
+                    </span>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="bg-card/80 backdrop-blur-xl border border-border/50 p-5 sm:p-6 shadow-lg">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-teal-500/10 rounded-lg flex items-center justify-center border border-teal-500/20">
+                    <Lock className="w-5 h-5 text-teal-400" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-white">Problem Statement Control</h2>
+                    <p className="text-xs text-muted-foreground">Release or hide the problem statement PDF</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-background/50 rounded-xl border border-border/30">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-white">Release Problem Statement</p>
+                      <p className="text-xs text-muted-foreground">
+                        {isProblemStatementReleased
+                          ? 'Problem statement is visible to participants. Toggle off to hide it.'
+                          : 'Problem statement is hidden. Toggle on to release it to participants.'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={toggleProblemStatementReleased}
+                      disabled={isTogglingProblemStatement}
+                      className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500/50 disabled:opacity-50 ${
+                        isProblemStatementReleased ? 'bg-green-500' : 'bg-muted-foreground/30'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform ${
+                          isProblemStatementReleased ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  <div className="p-4 bg-background/50 rounded-xl border border-border/30 space-y-3">
+                    <p className="text-sm font-medium text-white">PDF Link</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        value={problemStatementPdfLink}
+                        onChange={(e) => setProblemStatementPdfLink(e.target.value)}
+                        placeholder="https://example.com/problem-statement.pdf"
+                        className="flex-1 h-10 rounded-lg bg-background/60 border border-border/60 text-white text-sm px-3 placeholder:text-muted-foreground focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 outline-none"
+                      />
+                      <Button
+                        onClick={saveProblemStatementLink}
+                        disabled={isSavingProblemStatementLink || !problemStatementPdfLink.trim()}
+                        className="bg-teal-600 hover:bg-teal-600/90 text-white h-10 px-4 text-sm disabled:opacity-50"
+                      >
+                        {isSavingProblemStatementLink ? 'Saving...' : 'Save'}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2.5 h-2.5 rounded-full ${isProblemStatementReleased ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                    <span className={`text-sm font-medium ${isProblemStatementReleased ? 'text-green-400' : 'text-red-400'}`}>
+                      {isProblemStatementReleased ? 'Released' : 'Hidden'}
                     </span>
                   </div>
                 </div>

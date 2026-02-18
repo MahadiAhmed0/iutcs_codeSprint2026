@@ -102,7 +102,7 @@ function LoginContent() {
               </h1>
               <div className="flex items-center justify-center gap-2">
                 <div className="h-px w-8 bg-gradient-to-r from-transparent to-accent/50"></div>
-                <p className="text-accent font-medium tracking-wide">Code Sprint 2026</p>
+                <p className="text-accent font-medium tracking-wide">DevSprint 2026</p>
                 <div className="h-px w-8 bg-gradient-to-l from-transparent to-accent/50"></div>
               </div>
             </div>
