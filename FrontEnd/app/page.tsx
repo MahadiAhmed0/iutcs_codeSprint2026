@@ -14,7 +14,7 @@ export default function LandingPage() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [stats, setStats] = useState({ totalTeams: 0, totalParticipants: 0 });
-  const [isRegistrationOpen, setIsRegistrationOpen] = useState(true);
+  const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
   const progressCircleRef = useRef<SVGCircleElement>(null);
   const circumference = 2 * Math.PI * 26;
   const supabase = createClient();
