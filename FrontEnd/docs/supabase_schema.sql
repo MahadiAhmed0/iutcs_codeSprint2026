@@ -91,15 +91,14 @@ VALUES (true);
 -- Rulebook table
 CREATE TABLE public.rulebook (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  link TEXT NOT NULL,
   published BOOLEAN DEFAULT false,
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   updated_by UUID REFERENCES auth.users(id)
 );
 
 -- Insert default rulebook (unpublished)
-INSERT INTO public.rulebook (link, published)
-VALUES ('', false);
+INSERT INTO public.rulebook (published)
+VALUES (false);
 
 -- Add foreign key for team_id in profiles
 ALTER TABLE public.profiles

@@ -74,10 +74,8 @@ export default function AdminPanel() {
   const [submissionDeadline, setSubmissionDeadline] = useState('');
   const [isTogglingSubmission, setIsTogglingSubmission] = useState(false);
   const [isSavingDeadline, setIsSavingDeadline] = useState(false);
-  const [rulebookLink, setRulebookLink] = useState('');
   const [isRulebookPublished, setIsRulebookPublished] = useState(false);
   const [isTogglingRulebook, setIsTogglingRulebook] = useState(false);
-  const [isSavingRulebookLink, setIsSavingRulebookLink] = useState(false);
   
   // Confirmation dialog state
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -191,10 +189,9 @@ export default function AdminPanel() {
       const fetchRulebookSettings = async () => {
         const { data } = await supabase
           .from('rulebook')
-          .select('link, published')
+          .select('published')
           .single();
         if (data) {
-          setRulebookLink(data.link || '');
           setIsRulebookPublished(data.published);
         }
       };
@@ -254,16 +251,6 @@ export default function AdminPanel() {
       setIsRulebookPublished(newValue);
     }
     setIsTogglingRulebook(false);
-  };
-
-  const saveRulebookLink = async () => {
-    if (!rulebookLink) return;
-    setIsSavingRulebookLink(true);
-    const { error } = await supabase
-      .from('rulebook')
-      .update({ link: rulebookLink, updated_at: new Date().toISOString(), updated_by: user?.id })
-      .not('id', 'is', null);
-    setIsSavingRulebookLink(false);
   };
 
   // Loading state
@@ -1394,26 +1381,6 @@ export default function AdminPanel() {
                         }`}
                       />
                     </button>
-                  </div>
-
-                  <div className="p-4 bg-background/50 rounded-xl border border-border/30 space-y-3">
-                    <p className="text-sm font-medium text-white">Rulebook Link</p>
-                    <div className="flex gap-2">
-                      <Input
-                        type="url"
-                        placeholder="https://docs.google.com/..."
-                        value={rulebookLink}
-                        onChange={(e) => setRulebookLink(e.target.value)}
-                        className="flex-1 bg-background/60 border-border/60 text-white text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
-                      />
-                      <Button
-                        onClick={saveRulebookLink}
-                        disabled={isSavingRulebookLink || !rulebookLink}
-                        className="bg-purple-500 hover:bg-purple-500/90 text-white h-10 px-4 text-sm disabled:opacity-50"
-                      >
-                        {isSavingRulebookLink ? 'Saving...' : 'Save'}
-                      </Button>
-                    </div>
                   </div>
 
                   <div className="flex items-center gap-2">
