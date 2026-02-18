@@ -711,7 +711,7 @@ export default function SubmissionPage() {
                   <li>All Google Drive links must be <span className="text-amber-400">publicly accessible</span></li>
                   <li>GitHub repository must be <span className="text-amber-400">public</span></li>
                   <li>You can <span className="text-green-400">update your submission</span> until the deadline</li>
-                  <li>Deadline: <span className="text-amber-400 font-medium">Feb 28, 2026</span></li>
+                  <li>Deadline: <span className="text-amber-400 font-medium">March 02, 2026</span></li>
                 </ul>
               </div>
 
