@@ -188,9 +188,12 @@ export default function LandingPage() {
             {/* Left content */}
             <div className="space-y-6 sm:space-y-8 text-center lg:text-left">
               <div className="space-y-2 sm:space-y-3">
-                <div className="inline-flex items-center gap-2 justify-center lg:justify-start">
+                <div className="flex flex-wrap items-center gap-3 justify-center lg:justify-start">
                   <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-accent/10 border border-accent/30 rounded-full text-accent text-xs sm:text-sm font-semibold flex items-center gap-2 backdrop-blur-sm">
                     Organized by IUTCS
+                  </span>
+                  <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-accent/10 border border-accent/30 rounded-full text-accent text-xs sm:text-sm font-semibold flex items-center gap-2 backdrop-blur-sm">
+                    Intra-IUT
                   </span>
                 </div>
                 <div className="flex justify-center lg:justify-start -ml-2 lg:-ml-3">
@@ -279,7 +282,7 @@ export default function LandingPage() {
                 </p>
                 
                 {/* Live badge */}
-                <div className={`mt-6 sm:mt-8 inline-flex items-center gap-2 px-4 py-2 rounded-full ${
+                {/* <div className={`mt-6 sm:mt-8 inline-flex items-center gap-2 px-4 py-2 rounded-full ${
                   isRegistrationOpen
                     ? 'bg-accent/10 border border-accent/30'
                     : 'bg-red-500/10 border border-red-500/30'
@@ -290,7 +293,7 @@ export default function LandingPage() {
                   <span className={`text-xs sm:text-sm font-medium ${
                     isRegistrationOpen ? 'text-accent' : 'text-red-400'
                   }`}>{isRegistrationOpen ? 'Registration Open' : 'Registration Closed'}</span>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
