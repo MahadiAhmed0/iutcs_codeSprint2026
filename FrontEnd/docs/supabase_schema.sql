@@ -208,11 +208,11 @@ CREATE POLICY "teams_update_admin"
   TO authenticated
   USING (public.is_admin());
 
--- Allow public (anonymous) to read teams for landing page stats
+-- Allow public (anonymous) AND authenticated users to read approved teams for landing page stats
 CREATE POLICY "teams_select_public_stats"
   ON public.teams FOR SELECT
-  TO anon
-  USING (true);
+  TO anon, authenticated
+  USING (payment_status = 'approved');
 
 -- SUBMISSIONS POLICIES
 -- Allow team leaders to manage their submissions
