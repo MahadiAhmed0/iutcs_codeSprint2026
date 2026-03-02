@@ -107,7 +107,7 @@ export default function LandingPage() {
   }, [circumference]);
 
   useEffect(() => {
-    const targetDate = new Date('2026-03-02T23:59:59').getTime();
+    const targetDate = new Date('2026-03-04T23:59:59').getTime();
 
     const calculateTimeLeft = () => {
       const now = new Date().getTime();
