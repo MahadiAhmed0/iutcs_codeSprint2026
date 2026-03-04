@@ -278,7 +278,7 @@ export default function LandingPage() {
                 </div>
                 
                 <p className="text-sm sm:text-base text-muted-foreground">
-                  Mar 2, 2026 • 11:59 PM
+                  Mar 4, 2026 • 11:59 PM
                 </p>
                 
                 {/* Live badge */}
